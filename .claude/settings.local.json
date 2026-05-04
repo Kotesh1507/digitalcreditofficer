@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.tavus.io)",
+      "PowerShell(aws ec2 create-security-group *)",
+      "PowerShell(aws elbv2 describe-target-groups --target-group-arns $TG_ARN --region us-west-2 --query \"TargetGroups[0].{Port:Port,Protocol:Protocol,TargetType:TargetType,HealthCheckPath:HealthCheckPath}\" --output table)",
+      "PowerShell($ALB_ARN = \"arn:aws:elasticloadbalancing:us-west-2:061051242847:loadbalancer/app/dco-app/3048f3d1bdbaec85\")",
+      "PowerShell($TG_ARN = \"arn:aws:elasticloadbalancing:us-west-2:061051242847:targetgroup/dco-app/a6981c3f3e697d4b\")",
+      "PowerShell(aws ecs *)"
+    ]
+  }
+}

@@ -1,0 +1,162 @@
+[
+  {
+    "index": 0,
+    "delayMs": 0,
+    "traceText": "Reading 6 documents...",
+    "tileKey": null,
+    "memoChunk": null,
+    "tavusNarration": "Alright, I've got the packet. Give me a moment — I'm reading through everything now."
+  },
+  {
+    "index": 1,
+    "delayMs": 600,
+    "traceText": "Identified borrower: Lone Star Outdoor Supply, LLC",
+    "tileKey": "borrower",
+    "memoChunk": "COMMERCIAL CREDIT MEMORANDUM\nHill Country Community Bank\n\nBorrower: Lone Star Outdoor Supply, LLC\nLoan Amount: $850,000 (SBA 7(a))\nDate: {{date}}\n\n",
+    "tavusNarration": "Okay I've got the packet. Lone Star Outdoor Supply — veteran-owned, been operating eleven years, two locations in New Braunfels and Boerne. Marcus Reyes is the sole owner. They're asking for $850,000 under the SBA 7(a) program to open a third location in Fredericksburg. Use of proceeds breaks down to $475,000 real estate, $225,000 equipment, $150,000 working capital. This is a standard expansion deal."
+  },
+  {
+    "index": 2,
+    "delayMs": 800,
+    "traceText": "Parsing 1120S_2024.pdf → Revenue $4.82M, EBITDA $392K",
+    "tileKey": null,
+    "memoChunk": "EXECUTIVE SUMMARY\n\nRecommending approval of $850,000 SBA 7(a) loan for Lone Star Outdoor Supply, LLC. ",
+    "tavusNarration": "2024 revenue came in at $4.82 million. EBITDA $392,000. That's 11.8% growth year over year from $4.31 million in 2023. Three consecutive years of growth — 2022 was $3.95 million. This is a business that's been growing consistently, not spiking."
+  },
+  {
+    "index": 3,
+    "delayMs": 700,
+    "traceText": "Parsing 1120S_2023.pdf → YoY growth 11.8%",
+    "tileKey": null,
+    "memoChunk": "Strong cash flow (DSCR 2.84x), excellent credit profile (FICO 762), and 11-year operating history support the request. ",
+    "tavusNarration": null
+  },
+  {
+    "index": 4,
+    "delayMs": 600,
+    "traceText": "Extracting bank statements → Avg deposits $402K/month",
+    "tileKey": null,
+    "memoChunk": "Three manageable risks identified with adequate mitigants.\n\n",
+    "tavusNarration": "Bank statements show $402,000 average monthly deposits over 12 months. Only 2 NSF events in that period — that's very clean. Deposit volatility coefficient is 0.08, which is low. The deposits also line up with the tax return revenue — variance is only 0.4%. No discrepancy between what the returns say and what actually hit the account."
+  },
+  {
+    "index": 5,
+    "delayMs": 800,
+    "traceText": "Pulling personal credit (Reyes, M.) → FICO 762",
+    "tileKey": "credit",
+    "memoChunk": "BUSINESS BACKGROUND\n\nLone Star Outdoor Supply is an established outdoor power equipment dealer operating two profitable locations in New Braunfels and Boerne, TX. ",
+    "tavusNarration": "Personal FICO is 762 — that's solid. No public records, no liens, no judgments, 14 years of credit history. On the business side, PAYDEX is 78, Intelliscore 82. PAYDEX measures how consistently a business pays its suppliers — 78 means Marcus is paying on time, close to the benchmark of 80. Clean profile across the board."
+  },
+  {
+    "index": 6,
+    "delayMs": 700,
+    "traceText": "Pulling business credit (EIN) → PAYDEX 78, Intelliscore 82",
+    "tileKey": null,
+    "memoChunk": "The company has demonstrated 11 years of consistent operations with 11.8% year-over-year revenue growth. The business seeks to open a third location in Fredericksburg to capture growth in the Texas Hill Country market.\n\n",
+    "tavusNarration": null
+  },
+  {
+    "index": 7,
+    "delayMs": 800,
+    "traceText": "Querying industry benchmark NAICS 423820 → CAGR 3.1%",
+    "tileKey": "industry",
+    "memoChunk": "MANAGEMENT\n\nMarcus Reyes, 100% owner, US Army veteran. Personal FICO 762, net worth $890K, liquidity $145K. Strong operational history and clean credit profile.\n\n",
+    "tavusNarration": "NAICS 423820 — Farm and Garden Machinery Wholesalers. Five year CAGR is 3.1%, outlook is healthy. The Hill Country market specifically is interesting — housing growth in that corridor is running at 4.2% annually, which directly drives demand for the kind of equipment Marcus sells. Main headwind is tariff exposure on imported small engines — Honda, Stihl, Briggs and Stratton. We'll come back to that when we get to risks."
+  },
+  {
+    "index": 8,
+    "delayMs": 900,
+    "traceText": "Computing DSCR → 2.84x (vs 1.25x bank floor, 1.10x SBA min)",
+    "tileKey": "cashflow",
+    "memoChunk": "FINANCIAL ANALYSIS\n\n2024 Revenue: $4,820,318 (11.8% YoY growth)\n2024 EBITDA: $392,000\nAnnual Debt Service (proposed + existing): $162,000\nDSCR: 2.84x\nBank floor: 1.25x. SBA SOP 50-10-8 minimum: 1.10x.\nIndustry median DSCR: 1.45x.\nDeposit volatility coefficient: 0.08 (low)\n\n",
+    "tavusNarration": "Here's the key number. DSCR — Debt Service Coverage Ratio. It answers one question: does Marcus earn enough to pay back this loan on top of everything else he owes? His EBITDA is $392,000. Total annual debt service — proposed loan plus existing obligations — is $162,000. That gives us 2.84x. The SBA minimum is 1.10x. Our bank floor is 1.25x. The industry median is 1.45x. Marcus is almost double the bank floor. That is a strong number."
+  },
+  {
+    "index": 9,
+    "delayMs": 800,
+    "traceText": "Valuing collateral pool → $859K advance value",
+    "tileKey": "collateral",
+    "memoChunk": "COLLATERAL\n\nReal Estate (Fredericksburg): $380,000 advance value\nEquipment: $169,000 advance value\nInventory blanket lien: $310,000 advance value\nTotal advance value: $859,000 against $850,000 loan\nCoverage ratio: 1.01x\n\n",
+    "tavusNarration": "Collateral pool has three pieces. The Fredericksburg real estate appraised at $475,000 — we advance 80% of that, so $380,000. New equipment across all locations valued at $225,000 — 75% advance rate gives us $169,000. Blanket lien on inventory with a book value of $620,000 — at 50% that's $310,000. Total advance value is $859,000 against an $850,000 loan. Coverage ratio is 1.01x. It covers the loan but only just. That's going to be a flag."
+  },
+  {
+    "index": 10,
+    "delayMs": 500,
+    "traceText": "Cross-referencing deposits to revenue → variance 0.4%",
+    "tileKey": null,
+    "memoChunk": null,
+    "tavusNarration": null
+  },
+  {
+    "index": 11,
+    "delayMs": 500,
+    "traceText": "Cross-referencing tax return to PFS → no discrepancies",
+    "tileKey": null,
+    "memoChunk": null,
+    "tavusNarration": null
+  },
+  {
+    "index": 12,
+    "delayMs": 700,
+    "traceText": "Risk scan: concentration → FLAG (top 3 = 31%)",
+    "tileKey": "risk_concentration",
+    "memoChunk": "RISK ASSESSMENT\n\n1. Customer Concentration (Amber)\n   Finding: Top 3 customers account for 31% of revenue.\n   Mitigant: 7+ year relationships, recurring service contracts.\n\n",
+    "tavusNarration": "First flag. Top three customers account for 31% of revenue. That's concentration risk. Any one of those customers walking out the door changes this deal meaningfully. The mitigant — all three are seven-plus-year relationships with recurring service contracts. No customer has signalled intent to leave. I'm flagging it amber, not red. But I want this documented in writing, not just in the narrative."
+  },
+  {
+    "index": 13,
+    "delayMs": 600,
+    "traceText": "Risk scan: tariff exposure → FLAG (62% imports)",
+    "tileKey": "risk_tariff",
+    "memoChunk": "2. Tariff Exposure (Amber)\n   Finding: 62% of inventory consists of imported small engines.\n   Mitigant: 2023 pricing pass-through demonstrated, stable gross margins.\n\n",
+    "tavusNarration": "Second flag. 62% of Marcus's inventory is imported small engines — Honda, Stihl, Briggs and Stratton. If tariffs increase further, his cost of goods goes up. The question is whether he can pass that through to customers. He demonstrated he could in the 2023 tariff round — gross margins held steady. That's the mitigant. But I want a quarterly inventory mix review as a covenant going forward."
+  },
+  {
+    "index": 14,
+    "delayMs": 500,
+    "traceText": "Risk scan: collateral coverage → FLAG (1.01x)",
+    "tileKey": "risk_collateral",
+    "memoChunk": "3. Collateral Coverage Tight (Amber)\n   Finding: Total advance value 1.01x the loan amount.\n   Mitigant: SBA 75% guaranty plus owner personal guarantee backed by $890K net worth.\n\n",
+    "tavusNarration": "Third flag. We already saw this — 1.01x coverage. The loan is technically collateralised but there is no cushion. The mitigants are structural. The SBA guaranty covers 75% of this loan — so even if Marcus defaults, the bank's exposure is only 25%. On top of that Marcus has a personal guarantee backed by $890,000 net worth. The collateral tightness is real but the guarantee structure absorbs most of the risk."
+  },
+  {
+    "index": 15,
+    "delayMs": 700,
+    "traceText": "Drafting credit memo (9 sections)...",
+    "tileKey": null,
+    "memoChunk": null,
+    "tavusNarration": null
+  },
+  {
+    "index": 16,
+    "delayMs": 600,
+    "traceText": "Generating risk narratives with mitigants",
+    "tileKey": null,
+    "memoChunk": "RECOMMENDATION\n\nApprove $850,000 SBA 7(a) with the following conditions:\n- Quarterly financial reporting covenant\n- DSCR maintenance covenant: 1.25x minimum\n- Owner personal guaranty\n- Life insurance assignment per bank policy\n- Second appraisal on Fredericksburg property pre-closing\n- Annual customer concentration review\n\n",
+    "tavusNarration": null
+  },
+  {
+    "index": 17,
+    "delayMs": 500,
+    "traceText": "Checking SBA SOP 50-10-8 compliance → pass",
+    "tileKey": null,
+    "memoChunk": "This memo complies with SBA SOP 50-10-8 documentation requirements effective June 2025.\n\n",
+    "tavusNarration": null
+  },
+  {
+    "index": 18,
+    "delayMs": 400,
+    "traceText": "Memo draft complete (4 pages)",
+    "tileKey": null,
+    "memoChunk": "FINAL DECISION: APPROVE WITH CONDITIONS\n",
+    "tavusNarration": null
+  },
+  {
+    "index": 19,
+    "delayMs": 600,
+    "traceText": "Ready for review.",
+    "tileKey": "complete",
+    "memoChunk": null,
+    "tavusNarration": "Memo is done. Four pages, nine sections. Recommendation is approve with conditions. DSCR at 2.84x is almost double the bank floor. Credit profile is clean. Eleven years of operating history. Three manageable risks, all with documented mitigants. The conditions are quarterly financial reporting, DSCR maintenance covenant at 1.25x minimum, personal guaranty, life insurance assignment, second appraisal on the Fredericksburg property before closing, and an annual customer concentration review. This complies with SBA SOP 50-10-8 documentation requirements. Want to stress test it?"
+  }
+]

@@ -1,0 +1,188 @@
+{
+  "borrower": {
+    "legalName": "Lone Star Outdoor Supply, LLC",
+    "dba": "Lone Star Outdoor",
+    "owner": "Marcus Reyes",
+    "ownership": "100%",
+    "ownerVeteran": true,
+    "naics": "423820",
+    "naicsDescription": "Farm and Garden Machinery and Equipment Wholesalers",
+    "yearsInBusiness": 11,
+    "employees": 18,
+    "currentLocations": ["New Braunfels, TX", "Boerne, TX"],
+    "expansionLocation": "Fredericksburg, TX",
+    "businessAddress": "1247 Main Street, New Braunfels, TX 78130"
+  },
+  "loan": {
+    "amount": 850000,
+    "type": "SBA 7(a)",
+    "purpose": "Third location expansion",
+    "useOfProceeds": {
+      "realEstate": 475000,
+      "equipment": 225000,
+      "workingCapital": 150000
+    },
+    "term": 120,
+    "termUnit": "months",
+    "rate": "Prime + 2.75%",
+    "guaranty": 0.75,
+    "equityInjection": 100000
+  },
+  "financials": {
+    "revenue2024": 4820318,
+    "revenue2023": 4310000,
+    "revenue2022": 3950000,
+    "revenueGrowthYoY": 11.8,
+    "ebitda2024": 392000,
+    "grossMarginPct": 35,
+    "operatingExpenses2024": 1278000,
+    "depreciation2024": 94000,
+    "interest2024": 52000,
+    "netIncome2024": 246000,
+    "annualDebtServiceProposed": 138000,
+    "annualDebtServiceExisting": 24000,
+    "annualDebtServiceTotal": 162000,
+    "dscr": 2.84,
+    "dscrIndustryMedian": 1.45,
+    "dscrSbaMin": 1.10,
+    "dscrBankFloor": 1.25,
+    "monthlyAvgDeposits": 402000,
+    "depositVolatilityCoefficient": 0.08,
+    "nsfCount12mo": 2,
+    "depositToRevenueVariance": 0.4
+  },
+  "credit": {
+    "personalFico": 762,
+    "businessPaydex": 78,
+    "businessIntelliscore": 82,
+    "publicRecords": 0,
+    "liens": 0,
+    "judgments": 0,
+    "creditHistoryYears": 14
+  },
+  "owner": {
+    "personalNetWorth": 890000,
+    "personalLiquidity": 145000,
+    "personalGuarantee": true
+  },
+  "collateral": {
+    "realEstate": {
+      "appraisedValue": 475000,
+      "advanceRate": 0.80,
+      "advanceValue": 380000,
+      "type": "Commercial real estate, Fredericksburg TX"
+    },
+    "equipment": {
+      "value": 225000,
+      "advanceRate": 0.75,
+      "advanceValue": 169000,
+      "type": "New equipment, all locations"
+    },
+    "inventoryBlanket": {
+      "bookValue": 620000,
+      "advanceRate": 0.50,
+      "advanceValue": 310000,
+      "type": "Blanket lien, all locations"
+    },
+    "totalAdvanceValue": 859000,
+    "loanCoverageRatio": 1.01
+  },
+  "industry": {
+    "naics": "423820",
+    "fiveYearCagr": 3.1,
+    "outlook": "Healthy",
+    "tailwinds": [
+      "Texas Hill Country housing growth at 4.2% annually drives outdoor equipment demand",
+      "Agricultural recovery cycle"
+    ],
+    "headwinds": [
+      "Tariff exposure on imported small engines (Honda, Stihl, Briggs & Stratton)",
+      "Skilled service labor cost inflation"
+    ]
+  },
+  "risks": [
+    {
+      "id": "concentration",
+      "severity": "amber",
+      "title": "Customer Concentration",
+      "finding": "Top 3 customers account for 31% of revenue",
+      "source": "Customer ledger report, 2024 fiscal year, page 4",
+      "mitigant": "All three are 7+ year relationships with recurring service contracts. No customer has signaled intent to leave."
+    },
+    {
+      "id": "tariff",
+      "severity": "amber",
+      "title": "Tariff Exposure on Imported Inventory",
+      "finding": "62% of inventory consists of imported small engines subject to current US tariff schedules",
+      "source": "Inventory schedule, September 2025 trial balance",
+      "mitigant": "Pricing power demonstrated in the 2023 tariff round, with full pass-through to customers and stable gross margins"
+    },
+    {
+      "id": "collateral",
+      "severity": "amber",
+      "title": "Collateral Coverage Tight",
+      "finding": "Total advance value is 1.01x the loan amount",
+      "source": "Real estate appraisal plus equipment and inventory schedules",
+      "mitigant": "SBA 75% guaranty plus owner personal guarantee backed by $890K net worth"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "ratesUp200bps",
+      "label": "Rates rise 200bps",
+      "newDebtService": 184000,
+      "newDscr": 2.13,
+      "newRiskCount": 3,
+      "recommendation": "Approve, no covenant changes",
+      "memoOverride": "Approve with original conditions. DSCR remains well above the 1.25x bank floor under a 200bps rate shock.",
+      "avatarScript": "DSCR drops to 2.13x. Still very strong. No covenant changes needed. The deal holds up well under rate pressure."
+    },
+    {
+      "id": "topCustomerLeaves",
+      "label": "Top customer leaves",
+      "revenueImpact": -14,
+      "newEbitda": 297000,
+      "newDscr": 1.83,
+      "newRiskCount": 4,
+      "recommendation": "Approve with tighter covenants",
+      "memoOverride": "Approve with stricter conditions: quarterly DSCR test instead of annual, and customer concentration review at every renewal.",
+      "avatarScript": "DSCR drops to 1.83x. Still bankable, but I'm tightening the covenants. I want a quarterly DSCR test and a customer concentration review at every renewal."
+    },
+    {
+      "id": "revenueDown20",
+      "label": "Revenue drops 20%",
+      "newRevenue": 3856000,
+      "newEbitda": 178000,
+      "newDscr": 1.10,
+      "newRiskCount": 5,
+      "recommendation": "Approve only with material additional conditions",
+      "memoOverride": "Approve only with: 12-month deposit covenant, additional collateral, owner liquidity covenant of $100K minimum, and quarterly DSCR test. Borderline acceptance.",
+      "avatarScript": "DSCR drops to 1.10x — just above the SBA floor. I'd want a deposit covenant, additional collateral, and an owner liquidity covenant before approving. This is borderline."
+    }
+  ],
+  "qaPairs": {
+    "why_approve": {
+      "script": "Three reasons. Cash flow is more than double the bank floor at 2.84x DSCR. The owner has real skin in the game — $890K net worth and a personal guarantee. And the SBA guaranty covers 75% of our exposure. Risk-adjusted, this is a clean yes.",
+      "answer": "Three reasons: (1) DSCR of 2.84x is more than double the 1.25x bank floor. (2) Owner has $890K net worth with personal guarantee. (3) SBA covers 75% of our exposure. Risk-adjusted, this is a clean approval."
+    },
+    "what_worries": {
+      "script": "Honestly, the tariff exposure. 62% of inventory is imported small engines. If tariffs double, margins compress fast. I want a quarterly inventory mix review as a covenant — so we see it coming before it hits the P&L.",
+      "answer": "Primary concern: tariff exposure on 62% imported inventory (small engines). Secondary: customer concentration at 31% for top 3 accounts. Both are manageable but warrant monitoring covenants."
+    },
+    "chair": {
+      "script": "If I'm the credit committee chair, I push on two things: document the customer concentration mitigant in writing — not just in the narrative — get it signed by all three customers. And I want a second appraisal on the Fredericksburg property before closing. Otherwise, I'd vote yes.",
+      "answer": "Two asks before signing: (1) Written documentation of customer concentration mitigants — signed contracts from all three. (2) Second appraisal on Fredericksburg property. With those, vote yes."
+    }
+  },
+  "recommendation": {
+    "decision": "APPROVE WITH CONDITIONS",
+    "conditions": [
+      "Quarterly financial reporting covenant",
+      "DSCR maintenance covenant: 1.25x minimum",
+      "Owner personal guaranty",
+      "Life insurance assignment per bank policy",
+      "Second appraisal on Fredericksburg property pre-closing",
+      "Annual customer concentration review"
+    ]
+  }
+}
