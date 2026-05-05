@@ -53,7 +53,7 @@ export default function LandingScreen() {
               Hill Country Community Bank
             </div>
             <h1 className="font-['DM_Serif_Display'] text-5xl text-white mb-3 leading-tight">
-              Digital Credit Officer
+              Clair
             </h1>
             <p className="text-slate-400 text-base leading-relaxed">
               AI-powered SBA 7(a) loan analysis — complete credit memos in 90 seconds.

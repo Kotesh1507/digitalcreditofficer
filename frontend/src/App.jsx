@@ -43,7 +43,7 @@ export default function App() {
             <Zap className="w-3.5 h-3.5 text-teal-accent" />
           </div>
           <div>
-            <div className="text-sm font-semibold text-white leading-tight">Digital Credit Officer</div>
+            <div className="text-sm font-semibold text-white leading-tight">Clair</div>
             <div className="text-[10px] font-mono text-slate-600 leading-tight">SBA 7(a) · Hill Country Community Bank</div>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function App() {
       <main className="relative z-10 flex-1 overflow-hidden flex">
 
         {/* LEFT: Avatar (always visible — idle greet through memo complete) */}
-        <div className="w-64 xl:w-72 flex-shrink-0 flex flex-col p-4 border-r border-white/5">
+        <div className="w-80 xl:w-96 flex-shrink-0 flex flex-col p-4 border-r border-white/5">
           <div className="flex-1 min-h-0">
             <TavusAvatar />
           </div>

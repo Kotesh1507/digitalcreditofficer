@@ -123,7 +123,7 @@ function TypewriterText({ text }) {
       } else {
         clearInterval(interval);
       }
-    }, 22);
+    }, 40);
 
     return () => clearInterval(interval);
   }, [text]);
