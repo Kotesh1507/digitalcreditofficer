@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, FileText, Zap } from 'lucide-react';
 import { useStore } from '../store/index.js';
@@ -6,11 +6,11 @@ import { useStore } from '../store/index.js';
 export default function IdleScreen() {
   const startDemo = useStore((s) => s.startDemo);
   const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     setDragOver(false);
-    // We accept any file — content is ignored, same demo runs
     startDemo();
   }, [startDemo]);
 
@@ -20,6 +20,14 @@ export default function IdleScreen() {
   };
 
   const handleDragLeave = () => setDragOver(false);
+
+  const handleFileChange = useCallback(() => {
+    startDemo();
+  }, [startDemo]);
+
+  const handleZoneClick = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <div className="flex items-center justify-center h-full w-full relative overflow-hidden">
@@ -48,7 +56,7 @@ export default function IdleScreen() {
               <Zap className="w-5 h-5 text-teal-accent" />
             </div>
             <span className="text-xs font-mono uppercase tracking-[0.3em] text-teal-accent/70">
-              Digital Credit Officer
+              Clair
             </span>
           </div>
 
@@ -71,10 +79,18 @@ export default function IdleScreen() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleFileChange}
+          />
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
+            onClick={handleZoneClick}
             className={`
               relative border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer
               transition-all duration-300

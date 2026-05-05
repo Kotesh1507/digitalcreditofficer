@@ -30,11 +30,11 @@ export default function MemoColumn() {
         setIsTyping(false);
         return;
       }
-      const charsPerTick = 2;
+      const charsPerTick = 1;
       const chunk = queueRef.current.slice(0, charsPerTick);
       queueRef.current = queueRef.current.slice(charsPerTick);
       setDisplayText((prev) => prev + chunk);
-    }, 12);
+    }, 25);
 
     return () => {
       clearInterval(intervalRef.current);

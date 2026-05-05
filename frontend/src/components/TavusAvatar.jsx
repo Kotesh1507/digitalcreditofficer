@@ -153,7 +153,7 @@ export default function TavusAvatar() {
                 }
               </div>
               <div className="text-center">
-                <div className="text-sm text-slate-500 font-medium">Digital Credit Officer</div>
+                <div className="text-sm text-slate-500 font-medium">Clair</div>
                 <div className="text-xs text-slate-700 font-mono mt-1">
                   {status === 'joining' ? 'Connecting...' : 'Ready to review'}
                 </div>
@@ -224,7 +224,7 @@ export default function TavusAvatar() {
 
       {/* Label */}
       <div className="flex-shrink-0 pt-2 text-center">
-        <div className="text-xs font-semibold text-slate-300">Digital Credit Officer</div>
+        <div className="text-xs font-semibold text-slate-300">Clair</div>
         <div className="text-[10px] text-slate-600 font-mono">Hill Country Community Bank</div>
       </div>
     </div>
