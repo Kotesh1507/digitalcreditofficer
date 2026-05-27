@@ -1,0 +1,55 @@
+name: Build & Deploy to AWS ECS
+
+on:
+  push:
+    branches: [ main ]      # Auto-deploy when Kotesh merges the PR to main
+  workflow_dispatch:         # Also allows manual trigger from GitHub UI
+
+env:
+  AWS_REGION:   us-west-2
+  ECR_REPO:     dco-app
+  ECS_CLUSTER:  dco-app
+  ECS_SERVICE:  dco-app
+  TASK_FAMILY:  dco-app
+
+jobs:
+  deploy:
+    name: Build image → push ECR → redeploy ECS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag & push Docker image
+        id: build
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          docker build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPO:latest .
+          docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPO:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Force ECS redeployment
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service  $ECS_SERVICE \
+            --force-new-deployment \
+            --region   $AWS_REGION \
+            --output   text \
+            --query    'service.serviceName'
+          echo "ECS redeployment triggered — new task will be running in ~60s"
