@@ -27,12 +27,10 @@ CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-# Uses _INSURANCE suffixed env vars so both backends can coexist in the same
-# ECS task without colliding on TAVUS_PERSONA_ID / TAVUS_REPLICA_ID.
 TAVUS_API_KEY    = os.environ.get("TAVUS_API_KEY", "")
-TAVUS_PERSONA_ID = os.environ.get("TAVUS_PERSONA_ID_INSURANCE", os.environ.get("TAVUS_PERSONA_ID", ""))
-TAVUS_REPLICA_ID = os.environ.get("TAVUS_REPLICA_ID_INSURANCE", os.environ.get("TAVUS_REPLICA_ID", ""))
-LEAD_CAPTURE_URL = os.environ.get("LEAD_CAPTURE_URL_INSURANCE", os.environ.get("LEAD_CAPTURE_URL", "https://yourdomain.com/insurance-pilot"))
+TAVUS_PERSONA_ID = os.environ.get("TAVUS_PERSONA_ID", "")
+TAVUS_REPLICA_ID = os.environ.get("TAVUS_REPLICA_ID", "")
+LEAD_CAPTURE_URL = os.environ.get("LEAD_CAPTURE_URL", "https://yourdomain.com/insurance-pilot")
 
 DEFLECT_SCRIPT = (
     "Good question. For a deeper conversation, let's set this up properly - "
@@ -299,31 +297,37 @@ def handle_connect():
     emit("connected", {"sessionId": session_id})
     print(f"[WS] New session: {session_id} (sid={request.sid})", flush=True)
     SESSIONS[f"sid:{request.sid}"] = session_id
+    # NOTE: Do NOT send tavus_session here. The frontend will send 'init_tavus'
+    # after clearing stale Daily state, which is when we create/send the session.
 
-    # Send existing global conversation immediately if available
-    if GLOBAL_TAVUS["conversation_id"]:
-        print(f"[Tavus] Reusing global conversation {GLOBAL_TAVUS['conversation_id']}", flush=True)
-        emit("tavus_session", {
-            "conversationId": GLOBAL_TAVUS["conversation_id"],
-            "conversationUrl": GLOBAL_TAVUS["conversation_url"],
-        })
+
+@socketio.on("init_tavus")
+def handle_init_tavus():
+    """
+    Frontend requests a fresh Tavus session.
+    Always creates a new conversation — never reuses a potentially dead one.
+    """
+    session_id = SESSIONS.get(f"sid:{request.sid}")
+    if not session_id:
         return
 
-    # Otherwise create it in a thread (only once — lock prevents double creation)
-    def _open_tavus():
+    print(f"[Tavus] init_tavus received — creating fresh conversation", flush=True)
+
+    # End any existing global conversation to avoid accumulating orphaned sessions
+    old_id = GLOBAL_TAVUS.get("conversation_id")
+    if old_id:
+        print(f"[Tavus] Ending previous conversation {old_id}", flush=True)
+        threading.Thread(target=end_tavus_conversation, args=(old_id,), daemon=True).start()
         with GLOBAL_TAVUS["lock"]:
-            # Double-check inside lock
-            if GLOBAL_TAVUS["conversation_id"]:
-                emit_to_session(session_id, "tavus_session", {
-                    "conversationId": GLOBAL_TAVUS["conversation_id"],
-                    "conversationUrl": GLOBAL_TAVUS["conversation_url"],
-                })
-                return
+            GLOBAL_TAVUS["conversation_id"]  = None
+            GLOBAL_TAVUS["conversation_url"] = None
+
+    def _create():
+        with GLOBAL_TAVUS["lock"]:
             if GLOBAL_TAVUS["creating"]:
                 return
             GLOBAL_TAVUS["creating"] = True
 
-        print(f"[Tavus] Creating global conversation...", flush=True)
         conversation_id, conversation_url = create_tavus_conversation()
 
         with GLOBAL_TAVUS["lock"]:
@@ -333,26 +337,15 @@ def handle_connect():
                 GLOBAL_TAVUS["conversation_url"] = conversation_url
 
         if conversation_id:
-            print(f"[Tavus] Global conversation created: {conversation_id}", flush=True)
+            print(f"[Tavus] Fresh conversation ready: {conversation_id}", flush=True)
             emit_to_session(session_id, "tavus_session", {
                 "conversationId": conversation_id,
                 "conversationUrl": conversation_url,
             })
         else:
-            print(f"[Tavus] Failed to create global conversation", flush=True)
+            print(f"[Tavus] Failed to create conversation", flush=True)
 
-    threading.Thread(target=_open_tavus, daemon=True).start()
-
-
-@socketio.on("init_tavus")
-def handle_init_tavus():
-    """Re-send the global Tavus conversation URL to this session."""
-    if GLOBAL_TAVUS["conversation_id"]:
-        print(f"[Tavus] init_tavus — resending {GLOBAL_TAVUS['conversation_id']}", flush=True)
-        emit("tavus_session", {
-            "conversationId": GLOBAL_TAVUS["conversation_id"],
-            "conversationUrl": GLOBAL_TAVUS["conversation_url"],
-        })
+    threading.Thread(target=_create, daemon=True).start()
 
 
 @socketio.on("disconnect")
@@ -504,7 +497,19 @@ def health():
         "tavus_configured": bool(TAVUS_API_KEY),
         "persona": TAVUS_PERSONA_ID or "NOT SET",
         "replica": TAVUS_REPLICA_ID or "default",
+        "active_conversation": GLOBAL_TAVUS["conversation_id"],
     })
+
+@app.route("/reset-tavus", methods=["POST"])
+def reset_tavus():
+    """Force-end current conversation and create a fresh one on next connect."""
+    old_id = GLOBAL_TAVUS["conversation_id"]
+    if old_id:
+        end_tavus_conversation(old_id)
+    GLOBAL_TAVUS["conversation_id"]  = None
+    GLOBAL_TAVUS["conversation_url"] = None
+    GLOBAL_TAVUS["creating"]         = False
+    return jsonify({"ok": True, "ended": old_id})
 
 
 # ─────────────────────────────────────────────────────────────────────────────

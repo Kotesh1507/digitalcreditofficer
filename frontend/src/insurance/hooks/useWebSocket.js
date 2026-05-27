@@ -3,15 +3,18 @@ import { io } from 'socket.io-client';
 import { useInsuranceStore } from '../store/index.js';
 import confetti from 'canvas-confetti';
 
-// In dev: connect directly to port 5002 (local backend-insurance server).
-// In production (Docker + nginx): socket is proxied at /insurance-socket on same origin.
-const IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+// In dev, connect directly to port 5001. In production (Docker), same origin on port 5001.
 const SERVER_URL = import.meta.env.VITE_INSURANCE_SERVER_URL
-  || (IS_DEV ? 'http://localhost:5002' : window.location.origin);
-const SOCKET_PATH = IS_DEV ? '/socket.io' : '/insurance-socket';
+  || (window.location.hostname === 'localhost'
+      ? 'http://localhost:5002'
+      : window.location.origin.replace(/:\d+$/, ':5002'));
 
 const DEFLECT_SCRIPT =
   "Good question. For a deeper conversation, let's set this up properly — scan the QR code and we'll look at your submission together.";
+
+// Session nonce — incremented on every 'connected' event so stale
+// 'tavus_session' events from previous sessions are silently dropped.
+let _sessionNonce = 0;
 
 export function useWebSocket() {
   const socketRef = useRef(null);
@@ -32,7 +35,6 @@ export function useWebSocket() {
 
   useEffect(() => {
     const socket = io(SERVER_URL, {
-      path: SOCKET_PATH,
       transports: ['polling', 'websocket'],
       reconnectionDelay: 2000,
       reconnectionAttempts: Infinity,
@@ -49,20 +51,45 @@ export function useWebSocket() {
       setSocket(null);
     });
 
-    socket.on('connected', (data) => {
+    socket.on('connected', async (data) => {
+      // Bump nonce — any tavus_session event carrying an older nonce is stale
+      _sessionNonce += 1;
+      const myNonce = _sessionNonce;
+      console.log('[Insurance WS] connected — session nonce', myNonce);
+
       setSessionId(data.sessionId);
-      // Always request Tavus session on connect — backend will create or re-send existing
-      setTimeout(() => socket.emit('init_tavus'), 300);
-      // If we reconnected while demo was running, restart the timeline
-      const { phase } = useInsuranceStore.getState();
-      if (phase === 'running') {
-        console.log('[Insurance WS] Reconnected during run — re-emitting start');
-        setTimeout(() => socket.emit('start'), 500);
+      // Fully destroy any existing Daily call so TavusAvatar starts fresh
+      const existingCall = window.__ariaCall;
+      window.__ariaCall   = null;
+      window.__ariaUrl    = null;
+      window.__ariaJoined = false;
+      if (existingCall) {
+        try { await existingCall.leave(); }   catch (_) {}
+        try { existingCall.destroy(); }       catch (_) {}
       }
+      // Also destroy any Daily singleton we don't own
+      try {
+        const inst = window.DailyIframe?.getCallInstance?.();
+        if (inst && inst !== existingCall) {
+          try { await inst.leave(); } catch (_) {}
+          try { inst.destroy(); }     catch (_) {}
+        }
+      } catch (_) {}
+      useInsuranceStore.getState().setTavusSession(null, null);
+      useInsuranceStore.getState().setCallObject(null);
+      // Request fresh Tavus session from backend — give Daily time to clean up
+      setTimeout(() => {
+        if (_sessionNonce === myNonce) {
+          console.log('[Insurance WS] Requesting fresh Tavus session (nonce', myNonce, ')');
+          socket.emit('init_tavus');
+        }
+      }, 800);
     });
 
     socket.on('tavus_session', (data) => {
-      console.log('[Insurance WS] tavus_session received:', data.conversationId, data.conversationUrl?.slice(0,40));
+      // Discard events that arrived before the latest 'connected' cleanup
+      const nonce = _sessionNonce;
+      console.log('[Insurance WS] tavus_session received (nonce', nonce, '):', data.conversationId, data.conversationUrl?.slice(0,40));
       setTavusSession(data.conversationId, data.conversationUrl);
     });
 

@@ -49,13 +49,14 @@ export default function TavusAvatar() {
   useEffect(() => {
     if (!conversationUrl) return;
 
-    // If already JOINED to this exact URL, just wire tracks and return
+    // If already JOINED to this EXACT URL and the call is still live, just wire tracks
+    // NOTE: never skip join if the URL is different from what we last successfully joined
     if (
       window.__ariaCall &&
       window.__ariaUrl === conversationUrl &&
       window.__ariaJoined === true
     ) {
-      console.log('[Aria] Already joined — wiring tracks only');
+      console.log('[Aria] Already joined this URL — wiring tracks only');
       Object.values(window.__ariaCall.participants()).forEach(applyTracks);
       setStatus('live');
       setCallObject(window.__ariaCall);
@@ -82,7 +83,7 @@ export default function TavusAvatar() {
 
     async function init() {
       setStatus('joining');
-      console.log('[Aria] init() — fresh join for', conversationUrl.slice(-8));
+      console.log('[Aria] init() — joining', conversationUrl.slice(-12));
 
       // Always destroy existing call before creating a new one
       await destroyExisting();
@@ -172,12 +173,37 @@ export default function TavusAvatar() {
       });
 
       try {
+        // Pre-acquire mic device so Daily.js can use it even if startAudioOff
+        // Without this, setLocalAudio(true) after join silently fails
+        try {
+          await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        } catch (_) {
+          console.warn('[Aria] Mic pre-acquire failed — voice input disabled');
+        }
         const { micEnabled } = useInsuranceStore.getState();
         await call.join({ url: conversationUrl, startVideoOff: true, startAudioOff: !micEnabled });
-        console.log('[Aria] Joined. Mic:', micEnabled ? 'ON' : 'OFF');
+        console.log('[Aria] Joined successfully. Mic:', micEnabled ? 'ON' : 'OFF');
       } catch (err) {
         console.error('[Aria] join failed:', err.message);
-        if (!cancelled) setStatus('error');
+        if (!cancelled) {
+          // If the meeting doesn't exist, clear the stale URL from the singleton
+          // so the next tavus_session event triggers a fresh join attempt
+          if (err.message?.toLowerCase().includes('does not exist') ||
+              err.message?.toLowerCase().includes('not found')) {
+            console.warn('[Aria] Meeting does not exist — clearing URL, waiting for backend to provide fresh session');
+            window.__ariaCall   = null;
+            window.__ariaUrl    = null;
+            window.__ariaJoined = false;
+            useInsuranceStore.getState().setTavusSession(null, null);
+            // Ask backend for a new Tavus session
+            const { socket } = useInsuranceStore.getState();
+            if (socket) {
+              setTimeout(() => { if (!cancelled) socket.emit('init_tavus'); }, 1500);
+            }
+          }
+          try { call.destroy(); } catch (_) {}
+          setStatus('error');
+        }
       }
     }
 
