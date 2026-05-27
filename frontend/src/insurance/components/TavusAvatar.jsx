@@ -29,9 +29,20 @@ export default function TavusAvatar() {
     setStatus('joining');
     console.log('[Aria] Creating call for', conversationUrl);
 
-    const call = DailyIframe.createCallObject({
-      subscribeToTracksAutomatically: true,
-    });
+    // Destroy any existing Daily instance before creating new one
+    try {
+      const old = DailyIframe.getCallInstance();
+      if (old) { try { old.leave(); } catch(_){} try { old.destroy(); } catch(_){} }
+    } catch (_) {}
+
+    let call;
+    try {
+      call = DailyIframe.createCallObject({ subscribeToTracksAutomatically: true });
+    } catch (e) {
+      console.error('[Aria] createCallObject failed:', e.message);
+      setStatus('error');
+      return;
+    }
 
     // Store ref for mic toggle
     window.__ariaCall   = call;
@@ -132,14 +143,12 @@ export default function TavusAvatar() {
         setStatus('error');
       });
 
-    // ── Cleanup — exactly like CDO ────────────────────────────────────────────
+    // ── Cleanup ───────────────────────────────────────────────────────────────
     return () => {
       window.__ariaCall   = null;
       window.__ariaJoined = false;
-      call.leave().catch(() => {}).finally(() => {
-        call.destroy();
-        setCallObject(null);
-      });
+      setCallObject(null);
+      call.leave().catch(() => {}).finally(() => { try { call.destroy(); } catch(_){} });
     };
   }, [conversationUrl]); // eslint-disable-line
 

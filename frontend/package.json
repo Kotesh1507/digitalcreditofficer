@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@daily-co/daily-js": "^0.70.0",
+    "@daily-co/daily-js": "^0.90.0",
     "canvas-confetti": "^1.9.3",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.363.0",
