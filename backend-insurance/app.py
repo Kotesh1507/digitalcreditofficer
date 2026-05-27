@@ -306,26 +306,34 @@ def handle_connect():
 @socketio.on("init_tavus")
 def handle_init_tavus():
     """
-    Frontend requests a fresh Tavus session.
-    Always creates a new conversation — never reuses a potentially dead one.
+    Frontend requests Tavus session.
+    Reuses existing global conversation if available (same as CDO pattern).
+    Only creates a new one if none exists.
     """
     session_id = SESSIONS.get(f"sid:{request.sid}")
     if not session_id:
         return
 
-    print(f"[Tavus] init_tavus received — creating fresh conversation", flush=True)
+    # Reuse existing conversation — same URL, same Daily meeting, no duplicate
+    if GLOBAL_TAVUS["conversation_id"]:
+        print(f"[Tavus] init_tavus — reusing {GLOBAL_TAVUS['conversation_id']}", flush=True)
+        emit_to_session(session_id, "tavus_session", {
+            "conversationId": GLOBAL_TAVUS["conversation_id"],
+            "conversationUrl": GLOBAL_TAVUS["conversation_url"],
+        })
+        return
 
-    # End any existing global conversation to avoid accumulating orphaned sessions
-    old_id = GLOBAL_TAVUS.get("conversation_id")
-    if old_id:
-        print(f"[Tavus] Ending previous conversation {old_id}", flush=True)
-        threading.Thread(target=end_tavus_conversation, args=(old_id,), daemon=True).start()
-        with GLOBAL_TAVUS["lock"]:
-            GLOBAL_TAVUS["conversation_id"]  = None
-            GLOBAL_TAVUS["conversation_url"] = None
+    print(f"[Tavus] init_tavus — creating new conversation", flush=True)
 
     def _create():
         with GLOBAL_TAVUS["lock"]:
+            # Double-check inside lock — another thread may have created it
+            if GLOBAL_TAVUS["conversation_id"]:
+                emit_to_session(session_id, "tavus_session", {
+                    "conversationId": GLOBAL_TAVUS["conversation_id"],
+                    "conversationUrl": GLOBAL_TAVUS["conversation_url"],
+                })
+                return
             if GLOBAL_TAVUS["creating"]:
                 return
             GLOBAL_TAVUS["creating"] = True
@@ -339,7 +347,7 @@ def handle_init_tavus():
                 GLOBAL_TAVUS["conversation_url"] = conversation_url
 
         if conversation_id:
-            print(f"[Tavus] Fresh conversation ready: {conversation_id}", flush=True)
+            print(f"[Tavus] Conversation ready: {conversation_id}", flush=True)
             emit_to_session(session_id, "tavus_session", {
                 "conversationId": conversation_id,
                 "conversationUrl": conversation_url,
