@@ -149,9 +149,10 @@ export const useInsuranceStore = create((set, get) => ({
   },
 
   // ── Start conversation (landing → idle) ─────────────────────────────────────
+  // NOTE: do NOT emit init_tavus here — Tavus session is already created on
+  // socket connect. Emitting again causes a second tavus_session event which
+  // triggers a duplicate DailyIframe createCallObject error.
   startConversation: () => {
-    const { socket } = get();
-    if (socket) socket.emit('init_tavus');
     set({ phase: PHASE.IDLE });
   },
 
