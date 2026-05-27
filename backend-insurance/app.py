@@ -309,9 +309,19 @@ def handle_init_tavus():
     def _open_tavus():
         if not get_session(session_id):
             return
+        # Reuse existing conversation if already created for this session
+        existing = session.get("tavus_conversation_id")
+        if existing:
+            print(f"[Tavus] Reusing existing for {session_id}: {existing}", flush=True)
+            emit_to_session(session_id, "tavus_session", {
+                "conversationId": existing,
+                "conversationUrl": session.get("tavus_conversation_url"),
+            })
+            return
         conversation_id, conversation_url = create_tavus_conversation()
         if conversation_id:
-            session["tavus_conversation_id"] = conversation_id
+            session["tavus_conversation_id"]  = conversation_id
+            session["tavus_conversation_url"] = conversation_url
             emit_to_session(session_id, "tavus_session", {
                 "conversationId": conversation_id,
                 "conversationUrl": conversation_url,
