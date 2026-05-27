@@ -29,9 +29,24 @@ export default function TavusAvatar() {
     setStatus('joining');
     console.log('[Aria] Creating call for', conversationUrl);
 
-    const call = DailyIframe.createCallObject({
-      subscribeToTracksAutomatically: true,
-    });
+    // Destroy any existing Daily singleton before creating a new one
+    // (React StrictMode mounts twice — this prevents "Duplicate instances" error)
+    try {
+      const existing = DailyIframe.getCallInstance();
+      if (existing) {
+        try { existing.leave(); } catch (_) {}
+        try { existing.destroy(); } catch (_) {}
+      }
+    } catch (_) {}
+
+    let call;
+    try {
+      call = DailyIframe.createCallObject({ subscribeToTracksAutomatically: true });
+    } catch (e) {
+      console.error('[Aria] createCallObject failed:', e.message);
+      setStatus('error');
+      return;
+    }
 
     // ── Apply remote participant tracks to video/audio elements ──────────────
     function applyTracks(participant) {
@@ -134,35 +149,56 @@ export default function TavusAvatar() {
       setStatus('error');
     });
 
-    call.on('left-meeting', () => {
-      console.log('[Aria] Left meeting');
-      window.__ariaJoined = false;
-      setStatus('idle');
-    });
+    // ── Join (async IIFE so we can await mic check) ───────────────────────────
+    let destroyed = false;
 
-    // ── Join ─────────────────────────────────────────────────────────────────
-    // Pre-acquire mic so Daily can use it
-    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-      .catch(() => console.warn('[Aria] Mic pre-acquire failed'))
-      .finally(() => {
-        const { micEnabled: mic } = useInsuranceStore.getState();
-        call.join({ url: conversationUrl, startVideoOff: true, startAudioOff: false })
-          .then(() => {
-            console.log('[Aria] Join resolved. Mic:', mic ? 'ON' : 'OFF');
+    (async () => {
+      // Check if a mic device exists — if not, join audio-off silently
+      let micAvailable = false;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        micAvailable = devices.some((d) => d.kind === 'audioinput');
+      } catch (_) {}
+
+      if (micAvailable) {
+        try {
+          await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        } catch (_) {
+          micAvailable = false;
+        }
+      }
+
+      if (destroyed) return;
+
+      const { micEnabled: mic } = useInsuranceStore.getState();
+      console.log('[Aria] Joining. MicDevice:', micAvailable, '| MicEnabled:', mic);
+
+      call.join({
+        url: conversationUrl,
+        startVideoOff: true,
+        startAudioOff: !micAvailable,
+      })
+        .then(() => {
+          if (destroyed) return;
+          console.log('[Aria] Join resolved');
+          if (micAvailable) {
             try { call.setLocalAudio(mic); } catch (_) {}
-          })
-          .catch((err) => {
-            console.error('[Aria] Join failed:', err.message);
-            setStatus('error');
-          });
-      });
+          }
+        })
+        .catch((err) => {
+          if (destroyed) return;
+          console.error('[Aria] Join failed:', err.message);
+          setStatus('error');
+        });
+    })();
 
     // ── Cleanup ──────────────────────────────────────────────────────────────
     return () => {
+      destroyed = true;
       window.__ariaCall   = null;
       window.__ariaJoined = false;
       setCallObject(null);
-      call.leave().catch(() => {}).finally(() => call.destroy());
+      call.leave().catch(() => {}).finally(() => { try { call.destroy(); } catch (_) {} });
     };
   }, [conversationUrl]); // eslint-disable-line
 

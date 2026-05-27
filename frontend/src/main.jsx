@@ -4,12 +4,13 @@ import App from './App.jsx';
 import InsuranceApp from './insurance/InsuranceApp.jsx';
 import './index.css';
 
-// Route /insurance* to the Insurance Underwriting Officer app
-// All other paths go to the existing Digital Credit Officer app
+// Route to insurance app at /insurance, everything else goes to CDO
 const isInsurance = window.location.pathname.startsWith('/insurance');
 
+// Insurance app runs WITHOUT StrictMode — Daily.js createCallObject
+// does not tolerate the double-mount that StrictMode causes in dev.
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    {isInsurance ? <InsuranceApp /> : <App />}
-  </React.StrictMode>
+  isInsurance
+    ? <InsuranceApp />
+    : <React.StrictMode><App /></React.StrictMode>
 );
