@@ -26,6 +26,12 @@ export default function TavusAvatar() {
   useEffect(() => {
     if (!conversationUrl) return;
 
+    // If already live on this exact URL — do nothing (same as CDO behaviour)
+    if (window.__ariaCall && window.__ariaJoined && window.__ariaUrl === conversationUrl) {
+      console.log('[Aria] Already live on this URL — ignoring duplicate tavus_session');
+      return;
+    }
+
     setStatus('joining');
     console.log('[Aria] Creating call for', conversationUrl);
 
@@ -44,8 +50,9 @@ export default function TavusAvatar() {
       return;
     }
 
-    // Store ref for mic toggle
+    // Store refs for duplicate guard + mic toggle
     window.__ariaCall   = call;
+    window.__ariaUrl    = conversationUrl;
     window.__ariaJoined = false;
 
     // ── Apply remote participant tracks ──────────────────────────────────────
@@ -146,6 +153,7 @@ export default function TavusAvatar() {
     // ── Cleanup ───────────────────────────────────────────────────────────────
     return () => {
       window.__ariaCall   = null;
+      window.__ariaUrl    = null;
       window.__ariaJoined = false;
       setCallObject(null);
       call.leave().catch(() => {}).finally(() => { try { call.destroy(); } catch(_){} });
