@@ -27,10 +27,12 @@ CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 # ── Config ────────────────────────────────────────────────────────────────────
+# Uses _INSURANCE suffixed env vars so both backends can coexist in the same
+# ECS task without colliding on TAVUS_PERSONA_ID / TAVUS_REPLICA_ID.
 TAVUS_API_KEY    = os.environ.get("TAVUS_API_KEY", "")
-TAVUS_PERSONA_ID = os.environ.get("TAVUS_PERSONA_ID", "")
-TAVUS_REPLICA_ID = os.environ.get("TAVUS_REPLICA_ID", "")
-LEAD_CAPTURE_URL = os.environ.get("LEAD_CAPTURE_URL", "https://yourdomain.com/insurance-pilot")
+TAVUS_PERSONA_ID = os.environ.get("TAVUS_PERSONA_ID_INSURANCE", os.environ.get("TAVUS_PERSONA_ID", ""))
+TAVUS_REPLICA_ID = os.environ.get("TAVUS_REPLICA_ID_INSURANCE", os.environ.get("TAVUS_REPLICA_ID", ""))
+LEAD_CAPTURE_URL = os.environ.get("LEAD_CAPTURE_URL_INSURANCE", os.environ.get("LEAD_CAPTURE_URL", "https://yourdomain.com/insurance-pilot"))
 
 DEFLECT_SCRIPT = (
     "Good question. For a deeper conversation, let's set this up properly - "
