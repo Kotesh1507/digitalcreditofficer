@@ -1,0 +1,135 @@
+[
+  {
+    "index": 0, "delayMs": 0,
+    "traceText": "[01] Loading submission packet...\n    -> ACORD 125 | ACORD 126 | ACORD 140 | Loss Run (5yr) | Supplemental Q | Financial Stmts",
+    "tileKey": null,
+    "memoChunk": "MERIDIAN COMMERCIAL INSURANCE CARRIERS\nCommercial Lines - Underwriting Memorandum\n\nAccount: Apex Precision Manufacturing, LLC\nDate: {{date}}\n",
+    "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 1, "delayMs": 800,
+    "traceText": "[02] ACORD 125 Commercial Insurance Application - identified",
+    "tileKey": null, "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 2, "delayMs": 1500,
+    "traceText": "[03] Insured: Apex Precision Manufacturing, LLC - Columbus, OH",
+    "tileKey": "insured",
+    "memoChunk": "\nINSURED OVERVIEW\nApex Precision Manufacturing, LLC - Machine Shop / Metal Fabrication (ISO 3580)\nColumbus, OH (primary, 48,000 sq ft) | Dayton, OH (secondary)\nPrincipal: David Chen, CEO, 14 years | Revenue $22.4M | 187 employees\n",
+    "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 3, "delayMs": 1500,
+    "traceText": "[04] Parsing ACORD 125 -> TIV $8,500,000 | ISO Class: 3580 (Machine Shop)\n    -> ACORD 140: MNC construction | Sprinklered | Built 1998 | FPC 4",
+    "tileKey": "coverage",
+    "memoChunk": "\nCOVERAGE SUMMARY\nCommercial Property: $8,500,000 TIV | MNC | Sprinklered | FPC 4 | ISO CP 00 10\nGeneral Liability: $1,000,000 per occ / $2,000,000 aggregate\nInland Marine: $450,000 scheduled equipment\nPolicy Period: 2026-01-01 to 2027-01-01\n",
+    "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 4, "delayMs": 1500,
+    "traceText": "[05] Parsing 5-year loss run report -> 2 claims | Total incurred: $70,300\n    -> Claim 1: 2022, Equipment Breakdown, $47,200, Closed\n    -> Claim 2: GL-2019-0047, 2019, Slip/Fall, $23,100, Closed",
+    "tileKey": null, "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 5, "delayMs": 2000,
+    "traceText": "[06] Computing loss ratio -> 0.42 (vs 0.58 industry median) [OK] favorable\n    -> Source: Loss run p.1 + carrier records | Confidence: 96% | Method: Computed",
+    "tileKey": "lossRatio",
+    "memoChunk": "\nLOSS HISTORY (5-YEAR)\n2019: GL Premises - Slip/Fall | $23,100 | Closed\n2022: Equipment Breakdown | $47,200 | Closed\nTotal incurred: $70,300 | LR: 0.42 vs 0.58 industry median\nLR 0.42 is 28% below median. No adverse trend. No open claims.\n",
+    "tavusNarration": "Strong loss history. Loss ratio of 0.42 against a 0.58 industry median. Two closed claims in five years, both below $50K. Clean trend. No adverse development pattern.",
+    "avatarClipId": "moment_1"
+  },
+  {
+    "index": 6, "delayMs": 1500,
+    "traceText": "[07] Extracting D&B financial profile -> Revenue $22.4M | D&B Score: 78 | Rating: 2A2",
+    "tileKey": null, "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 7, "delayMs": 1500,
+    "traceText": "[08] Querying ISO class 3580 -> Sprinklered MNC | Base rate factor: 0.82\n    -> Source: ISO CLM via adapter | Confidence: 94% | Method: Rule-based lookup",
+    "tileKey": "isoClass",
+    "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 8, "delayMs": 1500,
+    "traceText": "[09] OFAC / sanctions check -> CLEAR\n    -> Apex Precision Manufacturing LLC - CLEAR | David Chen, CEO - CLEAR",
+    "tileKey": "compliance",
+    "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 9, "delayMs": 1500,
+    "traceText": "[10] Cat exposure: Columbus, OH -> Wind zone 2 | Flood zone X | Seismic: low\n    -> FEMA flood map: Zone X confirmed | NOAA wind zone: Zone 2 Franklin County OH",
+    "tileKey": null, "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 10, "delayMs": 2000,
+    "traceText": "[11] Computing 1-in-100yr PML -> $2,100,000 (24.7% of TIV)\n    -> Source: Cat model proxy + FEMA flood map | Confidence: 87% | Within treaty $5M",
+    "tileKey": "catPml",
+    "memoChunk": "\nCAT EXPOSURE\nLocation: Columbus, OH | Wind Zone 2 | Flood Zone X | Seismic: Low\n1-in-100yr PML: $2,100,000 (24.7% of TIV) | Within $5M treaty capacity\n",
+    "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 11, "delayMs": 1500,
+    "traceText": "[12] Coinsurance check -> $8.5M declared vs 80% required -> PASS\n    -> TIV $8,500,000 > 80% of RC $8,200,000 ($6,560,000 minimum) - PASS",
+    "tileKey": null, "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 12, "delayMs": 1500,
+    "traceText": "[13] Indicated premium -> Property $68,400 | GL $41,200 | IM $8,800 | Fees $5,600\n    -> ISO base rate 0.00965 x factor 0.82 x TIV = $67,183 rounded $68,400",
+    "tileKey": "premium",
+    "memoChunk": "\nINDICATED PREMIUM\nISO Base Rate: 0.00965 | Rate Factor: 0.82\nProperty: $68,400 | GL: $41,200 | IM: $8,800 | Fees: $5,600\nTotal Indicated: $124,000 | Requested: $112,000 | Variance: +10.7%\nCoinsurance 80%: PASS\n",
+    "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 13, "delayMs": 2000,
+    "traceText": "[14] Risk scan: hot work operations -> [FLAG]\n    -> Source: ACORD 125 p.3 + Supp. Q7 | Confidence: 91% | No permit protocol found",
+    "tileKey": "risks",
+    "memoChunk": "",
+    "tavusNarration": "Hold on. The ACORD shows daily welding and torch cutting on premises, but I cannot find a documented hot work permit program anywhere in this packet. That is a flag I have to call out before I can recommend binding.",
+    "avatarClipId": "moment_2"
+  },
+  {
+    "index": 14, "delayMs": 1500,
+    "traceText": "[15] Risk scan: raw material sourcing -> [FLAG] (67% single-supplier steel)\n    -> Source: Supplemental questionnaire p.2, Q14-Q15 | Confidence: 88%",
+    "tileKey": "risks",
+    "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 15, "delayMs": 1500,
+    "traceText": "[16] Risk scan: GL premises claim pattern -> [FLAG]\n    -> Source: Loss run Claim GL-2019-0047 | Confidence: 84% | $23,100 slip/fall closed",
+    "tileKey": "risks",
+    "memoChunk": "\nRISK ASSESSMENT - 74/100 - GOOD\n[AMBER 91%] Hot Work - No permit protocol. PRE-BIND: written program + fire watch.\n[AMBER 88%] Supplier Concentration - 67% single-source steel. Annual diversification attestation.\n[AMBER 84%] GL Premises - 1 slip/fall 2019. PRE-BIND: premises safety inspection.\n",
+    "tavusNarration": "Three amber flags total. All manageable. I am recommending bind with conditions - not a declination. The underlying risk quality is genuinely good.",
+    "avatarClipId": "moment_2_followup"
+  },
+  {
+    "index": 16, "delayMs": 1500,
+    "traceText": "[17] OH DOI compliance -> Admitted market | ISO CP 00 10 | SERFF filing ready\n    -> Ohio DOI: admitted market confirmed | SERFF: filing current | All checks PASS",
+    "tileKey": "compliance",
+    "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 17, "delayMs": 1200,
+    "traceText": "[18] Drafting underwriting memo (8 sections)...",
+    "tileKey": null,
+    "memoChunk": "\nRECOMMENDATION: BIND WITH CONDITIONS\n\n1. Written hot work permit program + fire watch protocol (PRE-BIND)\n2. Completed premises safety inspection report (PRE-BIND)\n3. Annual supplier diversification attestation\n4. Quarterly loss monitoring - policy year 1\n5. SERFF filing confirmation - ISO CP 00 10, OH admitted\n\nAll AI decisions carry full source citations, confidence scores, and reasoning chains.\n",
+    "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 18, "delayMs": 1000,
+    "traceText": "[19] Generating AI explainability audit trail -> all decisions source-cited\n    -> 7 tiles: Insured 98% | LR 96% | Cat 87% | Premium 90% | ISO 94% | Compliance 97% | Flags 88%",
+    "tileKey": null, "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  },
+  {
+    "index": 19, "delayMs": 800,
+    "traceText": "[20] Memo complete (5 pages). Recommendation: Bind with conditions.",
+    "tileKey": null,
+    "memoChunk": "",
+    "tavusNarration": "Done. Loss ratio 0.42, cat PML within treaty, three risk flags documented with binding conditions, indicated premium $124,000. Recommendation is bind with conditions. Want to stress-test it?",
+    "avatarClipId": "moment_3"
+  },
+  {
+    "index": 20, "delayMs": 500,
+    "traceText": "[21] Interactive layer active - stress tests and Q&A enabled.",
+    "tileKey": null, "memoChunk": "", "tavusNarration": "", "avatarClipId": null
+  }
+]

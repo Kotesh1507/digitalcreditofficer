@@ -1,0 +1,304 @@
+{
+  "insuredProfile": {
+    "legalName": "Apex Precision Manufacturing, LLC",
+    "dba": "Apex Precision",
+    "principal": { "name": "David Chen", "title": "CEO" },
+    "naics": "332710",
+    "naicsDescription": "Machine Shops",
+    "isoClass": "3580",
+    "isoClassDescription": "Machine Shops Sprinklered",
+    "yearsInBusiness": 14,
+    "employees": 187,
+    "annualRevenue": 22400000,
+    "dnb": { "score": 78, "rating": "2A2" },
+    "locations": [
+      { "type": "primary", "address": "4820 Industrial Pkwy", "city": "Columbus", "state": "OH", "zip": "43215" },
+      { "type": "secondary", "address": "1100 Mfg Drive", "city": "Dayton", "state": "OH", "zip": "45401" }
+    ],
+    "broker": "Midwest Commercial Insurance Brokers LLC",
+    "submissionDate": "2025-10-14"
+  },
+  "coverageSought": {
+    "commercialProperty": {
+      "tiv": 8500000,
+      "constructionType": "Masonry Non-Combustible",
+      "occupancy": "Machine Shop / Metal Fabrication",
+      "sprinklered": true,
+      "yearBuilt": 1998,
+      "squareFootage": 48000,
+      "fireProtectionClass": 4,
+      "form": "ISO CP 00 10"
+    },
+    "generalLiability": { "perOccurrence": 1000000, "aggregate": 2000000, "productsCompleted": 2000000 },
+    "inlandMarine": { "scheduledEquipment": 450000 },
+    "policyPeriod": { "effectiveDate": "2026-01-01", "expirationDate": "2027-01-01" },
+    "requestedPremium": 112000
+  },
+  "lossHistory": {
+    "periodYears": 5,
+    "totalClaims": 2,
+    "totalIncurred": 70300,
+    "lossRatio": 0.42,
+    "industryMedianLR": 0.58,
+    "carrierFloorLR": 0.70,
+    "claims": [
+      { "year": 2022, "type": "Equipment Breakdown", "incurred": 47200, "status": "Closed" },
+      { "year": 2019, "type": "GL Premises Slip/Fall", "incurred": 23100, "status": "Closed", "claimNumber": "GL-2019-0047" }
+    ]
+  },
+  "catExposure": {
+    "primaryLocation": "Columbus, OH",
+    "windZone": 2,
+    "floodZone": "X",
+    "seismic": "low",
+    "pml100yr": 2100000,
+    "pml100yrPct": 24.7,
+    "treatyAttachmentLimit": 5000000,
+    "withinTreaty": true
+  },
+  "indicatedPremium": {
+    "property": 68400,
+    "generalLiability": 41200,
+    "inlandMarine": 8800,
+    "feesAndEndorsements": 5600,
+    "total": 124000,
+    "isoRateFactor": 0.82,
+    "isoBaseRate": 0.00965
+  },
+  "coinsurance": {
+    "clause": "80%",
+    "tivDeclared": 8500000,
+    "replacementCostEstimate": 8200000,
+    "check": "PASS"
+  },
+  "riskScore": { "overall": 74, "outOf": 100, "interpretation": "Good - bind eligible with standard conditions" },
+  "risks": [
+    {
+      "id": "hot-work",
+      "severity": "amber",
+      "title": "Hot Work Operations - No Documented Permit Protocol",
+      "finding": "Daily welding and torch cutting on premises with no documented hot work permit program or fire watch protocol.",
+      "source": "ACORD 125, Section 4 - Occupancy Details, page 3",
+      "confidence": 91,
+      "reasoningChain": [
+        "ACORD 125 Section 4 declares occ: machine shop, metal fabrication.",
+        "ISO Class 3580 requires documented hot work controls for sprinkler rating.",
+        "Supplemental questionnaire Q7: welding daily. No permit program cited.",
+        "No fire marshal inspection certificate found in submission packet."
+      ],
+      "mitigant": "Bind condition: written hot work permit program + fire watch covenant. Annual fire marshal inspection certificate required.",
+      "sensitivity": "If hot work permit is provided pre-bind, this flag resolves and risk score improves to 82/100."
+    },
+    {
+      "id": "supplier-concentration",
+      "severity": "amber",
+      "title": "Raw Material Supplier Concentration - Single Source",
+      "finding": "67% of raw steel sourced from a single supplier. Midwest Steel Inc., Toledo OH. No backup supplier identified.",
+      "source": "Supplemental questionnaire, page 2, Q14-Q15",
+      "confidence": 88,
+      "reasoningChain": [
+        "Supplemental Q14: primary steel supplier = Midwest Steel Inc.",
+        "Supplemental Q15: no backup supplier identified.",
+        "BI benchmark: mfg accounts >50% single-source show 1.3x higher BI frequency."
+      ],
+      "mitigant": "Annual attestation of supplier diversification. BI sublimit covenant if no diversification achieved at renewal.",
+      "sensitivity": "If second supplier contract provided, BI frequency risk drops to industry baseline."
+    },
+    {
+      "id": "gl-premises",
+      "severity": "amber",
+      "title": "GL Premises Claim - Slip/Fall Pattern",
+      "finding": "1 GL premises claim (2019, $23,100, closed). Housekeeping standards require third-party verification.",
+      "source": "5-year loss run report, Claim GL-2019-0047",
+      "confidence": 84,
+      "reasoningChain": [
+        "Loss run: 1 GL premises claim in 5 years, slip/fall, $23,100, closed.",
+        "Single incident - below pattern threshold. But premises safety unverified.",
+        "Supplemental questionnaire lacks a completed slip/fall prevention checklist."
+      ],
+      "mitigant": "Completed premises safety inspection report required prior to binding.",
+      "sensitivity": "If premises inspection is clean, GL flag resolves. If second incident found, severity escalates to red."
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "cat-100yr",
+      "label": "Cat: 1-in-100yr wind event",
+      "pml": 2100000,
+      "pmlPct": 24.7,
+      "treatyCapacityUsedPct": 42,
+      "treatyLimit": 5000000,
+      "newRiskCount": 3,
+      "recommendation": "Bind - within treaty capacity",
+      "memoOverride": "1-in-100yr PML $2.1M (24.7% of TIV) within $5M treaty. Cat loading adequately priced. No change to recommendation.",
+      "avatarScript": "1-in-100yr PML is $2.1M - 24.7% of TIV. Well within the $5M treaty attachment limit. Cat loading is already reflected in the indicated premium. No change to the recommendation."
+    },
+    {
+      "id": "loss-dev-30pct",
+      "label": "Loss development +30% adverse",
+      "newIncurred": 91390,
+      "newLossRatio": 0.55,
+      "industryMedianLR": 0.58,
+      "newRiskCount": 4,
+      "recommendation": "Bind with 8% rate increase + quarterly monitoring",
+      "memoOverride": "Adverse IBNR pushes LR to 0.55 - still below 0.58 median. Recommend 8% rate increase and quarterly loss monitoring.",
+      "avatarScript": "If prior losses develop 30% adverse, the loss ratio moves to 0.55. Still below the 0.58 industry median, but close enough that I would want an 8% rate increase and quarterly loss monitoring as a policy condition."
+    },
+    {
+      "id": "tiv-understated",
+      "label": "TIV understated by 20%",
+      "adjustedTiv": 6800000,
+      "coinsuranceShortfall": 1700000,
+      "coinsurancePenaltyActivates": true,
+      "newRiskCount": 5,
+      "recommendation": "CONDITIONAL - certified appraisal required before binding",
+      "memoOverride": "If true TIV $6.8M vs declared $8.5M, 80% coinsurance clause activates penalty provision. Cannot bind without certified replacement cost appraisal from approved appraiser.",
+      "avatarScript": "If the true replacement cost is $6.8M instead of $8.5M as declared, the 80% coinsurance clause activates a proportional penalty provision. I cannot bind this account without a certified replacement cost appraisal from an approved appraiser. Full stop."
+    }
+  ],
+  "qaPairs": {
+    "why_bind": {
+      "chipLabel": "Why bind this risk?",
+      "answer": "Three reasons. Loss ratio is 28% below the industry median - that is real outperformance over five years. Sprinklered masonry non-combustible construction is exactly the risk profile we look for. And 14 years of operation with only two small closed claims is a very clean track record. The risk flags are real, but they are all mitigable with standard binding conditions.",
+      "script": "Three reasons. Loss ratio is 28% below the industry median - that is real outperformance over five years. Sprinklered masonry non-combustible construction is exactly the risk profile we look for. And 14 years of operation with only two small closed claims is a very clean track record. The risk flags are real, but they are all mitigable with standard binding conditions."
+    },
+    "cat_exposure": {
+      "chipLabel": "Cat exposure detail?",
+      "answer": "Columbus, Ohio is Wind Zone 2 - moderate, not severe. The 1-in-100yr probable maximum loss is $2.1M, which is 24.7% of TIV. No flood exposure - the site is in FEMA Zone X, which is the minimal flood risk designation. Cat exposure is manageable and it is already priced in the indicated premium.",
+      "script": "Columbus, Ohio is Wind Zone 2 - moderate, not severe. The 1-in-100yr probable maximum loss is $2.1M, which is 24.7% of TIV. No flood exposure - the site is in FEMA Zone X, which is the minimal flood risk designation. Cat exposure is manageable and it is already priced in the indicated premium."
+    },
+    "chief_underwriter": {
+      "chipLabel": "What if I'm chief underwriter?",
+      "answer": "Two things I would push on before issuing the binder. First: I want that hot work permit program signed and delivered, not as a post-bind condition - before the binder goes out. Second: I want a completed premises safety inspection report. The 2019 slip-and-fall is closed and isolated, but I want documented evidence that housekeeping standards have been addressed. Everything else I would approve as presented.",
+      "script": "Two things I would push on before issuing the binder. First: I want that hot work permit program signed and delivered, not as a post-bind condition - before the binder goes out. Second: I want a completed premises safety inspection report. The 2019 slip-and-fall is closed and isolated, but I want documented evidence that housekeeping standards have been addressed. Everything else I would approve as presented."
+    }
+  },
+  "recommendation": {
+    "decision": "BIND WITH CONDITIONS",
+    "bindingConditions": [
+      "Written hot work permit program + fire watch protocol (pre-bind)",
+      "Completed premises safety inspection report (pre-bind)",
+      "Annual supplier diversification attestation",
+      "Quarterly loss monitoring for policy year 1",
+      "SERFF filing confirmation - ISO CP 00 10, OH admitted"
+    ]
+  },
+  "explainability": {
+    "insuredSnapshot": {
+      "sources": [{ "document": "ACORD 125", "pages": "1-2", "method": "direct extraction", "confidence": 98 }],
+      "confidence": 98,
+      "confidenceLabel": "Very high - direct extraction, no inference",
+      "reasoningChain": ["Direct field read from ACORD 125 - legal name, NAICS, ISO class, principal, location confirmed across pages 1 and 2."],
+      "sensitivity": "N/A - direct extraction, no inference."
+    },
+    "lossRatio": {
+      "sources": [
+        { "document": "5-year loss run report", "pages": "p.1 Summary Table", "method": "computed", "confidence": 96 },
+        { "document": "Carrier premium records", "pages": "Policy 2021-2025", "method": "computed", "confidence": 96 }
+      ],
+      "confidence": 96,
+      "confidenceLabel": "Very high - confirmed from loss run and carrier records",
+      "reasoningChain": [
+        "Loss run p.1 summary: total incurred $70,300 over 5 years.",
+        "Earned premium from carrier records (adapter): $167,400.",
+        "Loss ratio = $70,300 / $167,400 = 0.420.",
+        "ISO benchmark for NAICS 332710: 0.58 industry median LR.",
+        "0.42 is 28% below median. No adverse multi-year trend detected."
+      ],
+      "sensitivity": "If prior year losses develop >65%, LR exceeds 0.70 carrier floor. See stress test: Loss dev +30% adverse."
+    },
+    "catPml": {
+      "sources": [
+        { "document": "Cat model proxy", "pages": "API query", "method": "API query", "confidence": 87 },
+        { "document": "FEMA Flood Map Service", "pages": "API query", "method": "API query", "confidence": 95 }
+      ],
+      "confidence": 87,
+      "confidenceLabel": "High - cat model proxy result cross-referenced with FEMA flood map",
+      "reasoningChain": [
+        "Primary location Columbus OH geocoded: Lat 39.96, Long -82.99.",
+        "FEMA flood map query: Zone X (minimal flood risk) confirmed.",
+        "NOAA wind zone lookup: Zone 2 (moderate) for Franklin County OH.",
+        "Cat proxy model: 1-in-100yr PML = $2,100,000 (24.7% of TIV $8.5M).",
+        "PML $2.1M vs treaty attachment $5M - within capacity."
+      ],
+      "sensitivity": "If wind zone reclassified to Zone 3, PML estimate increases to ~$3.2M (37.6% of TIV), still within treaty."
+    },
+    "premium": {
+      "sources": [
+        { "document": "ISO CLM via adapter", "pages": "rule-based lookup", "method": "rule-based lookup", "confidence": 90 },
+        { "document": "ACORD 140 property section", "pages": "direct", "method": "direct extraction", "confidence": 96 }
+      ],
+      "confidence": 90,
+      "confidenceLabel": "High - computed from ISO base rate and verified TIV",
+      "reasoningChain": [
+        "ISO base rate for Class 3580 sprinklered MNC: 0.00965 per dollar of TIV.",
+        "Apply ISO rate factor 0.82 (sprinkler credit + construction credit).",
+        "Property premium: 0.00965 x 0.82 x $8,500,000 = $67,183 rounded $68,400.",
+        "GL premium: $41,200 per ISO GL tables for NAICS 332710, 187 employees.",
+        "IM: $8,800 per scheduled equipment schedule. Fees/endorsements: $5,600.",
+        "Total indicated: $68,400 + $41,200 + $8,800 + $5,600 = $124,000."
+      ],
+      "sensitivity": "If TIV restated below $6.8M, coinsurance clause activates. See stress test: TIV understated -20%."
+    },
+    "isoClass": {
+      "sources": [
+        { "document": "ISO Commercial Lines Manual via adapter", "pages": "rule-based", "method": "rule-based lookup", "confidence": 94 },
+        { "document": "ACORD 125 Section 4", "pages": "direct", "method": "direct extraction", "confidence": 98 }
+      ],
+      "confidence": 94,
+      "confidenceLabel": "Very high - ISO class confirmed from ACORD occupancy declaration and CLM lookup",
+      "reasoningChain": [
+        "ACORD 125 Section 4: occupancy = machine shop, metal fabrication.",
+        "NAICS 332710 maps to ISO Class 3580 (Machine Shops - Sprinklered).",
+        "ISO CLM confirms sprinkler credit applies: rate factor 0.82.",
+        "FPC 4 confirmed - within ISO eligibility range for Class 3580."
+      ],
+      "sensitivity": "If sprinkler system found non-compliant at inspection, class reverts to non-sprinklered 3580 and rate factor increases to 1.15."
+    },
+    "compliance": {
+      "sources": [
+        { "document": "Ohio DOI admitted market database", "pages": "API", "method": "API query", "confidence": 97 },
+        { "document": "SERFF filing database", "pages": "API", "method": "API query", "confidence": 95 },
+        { "document": "OFAC SDN list", "pages": "API", "method": "API query", "confidence": 99 }
+      ],
+      "confidence": 97,
+      "confidenceLabel": "Very high - all three compliance checks returned clean",
+      "reasoningChain": [
+        "Ohio DOI: ISO CP 00 10 form approved for admitted market use in OH.",
+        "SERFF: ISO CP 00 10 filing current, no pending amendments.",
+        "OFAC SDN check: Apex Precision Manufacturing LLC - CLEAR.",
+        "David Chen, CEO - CLEAR."
+      ],
+      "sensitivity": "N/A - compliance checks are binary pass/fail. All passed."
+    },
+    "riskFlags": {
+      "sources": [
+        { "document": "ACORD 125", "pages": "Section 4, page 3", "method": "direct extraction", "confidence": 91 },
+        { "document": "Supplemental questionnaire", "pages": "page 2, Q7, Q14-Q15", "method": "direct extraction", "confidence": 88 },
+        { "document": "5-year loss run report", "pages": "Claim GL-2019-0047", "method": "direct extraction", "confidence": 84 }
+      ],
+      "confidence": 88,
+      "confidenceLabel": "High - flags derived from direct document evidence with supporting ISO benchmarks",
+      "reasoningChain": ["See individual risk flag reasoning chains: hot-work 91%, supplier-concentration 88%, gl-premises 84%."],
+      "sensitivity": "All three flags are amber (manageable). None escalate to red under base case assumptions."
+    }
+  },
+  "submissionDocs": [
+    { "filename": "acord_125_commercial.pdf", "realSource": "ACORD 125" },
+    { "filename": "acord_126_gl_section.pdf", "realSource": "ACORD 126" },
+    { "filename": "acord_140_property.pdf", "realSource": "ACORD 140" },
+    { "filename": "loss_run_5yr.pdf", "realSource": "5-year loss run report" },
+    { "filename": "financial_statements.pdf", "realSource": "Financial Statements" },
+    { "filename": "supplemental_questionnaire.pdf", "realSource": "Supplemental Questionnaire" }
+  ],
+  "memoSections": {
+    "executiveSummary": "EXECUTIVE SUMMARY\n\nBind $8,500,000 commercial property (ISO CP 00 10) and $1,000,000/$2,000,000 general liability with conditions. Apex Precision Manufacturing LLC presents a favorable risk profile: 5-year loss ratio of 0.42 against an industry median of 0.58, sprinklered masonry non-combustible construction, and a 14-year operating track record with only two small closed claims totaling $70,300. Three amber risk flags identified - all mitigable. Indicated premium: $124,000. Recommendation: BIND WITH CONDITIONS.",
+    "insuredOverview": "INSURED OVERVIEW\n\nLegal Name: Apex Precision Manufacturing, LLC\nPrincipal: David Chen, CEO | Years: 14\nNAICS: 332710 - Machine Shops | ISO: 3580 Sprinklered\nPrimary: 4820 Industrial Pkwy, Columbus OH 43215\nSecondary: 1100 Mfg Drive, Dayton OH 45401\nRevenue: $22,400,000 | Employees: 187 | D&B: 78 / 2A2",
+    "coverageSummary": "COVERAGE SUMMARY\n\nProperty: $8,500,000 TIV | MNC | Sprinklered | FPC 4 | Built 1998 | 48,000 sq ft | ISO CP 00 10\nGL: $1,000,000 per occ / $2,000,000 aggregate | Products: $2,000,000\nInland Marine: $450,000 scheduled equipment\nPolicy Period: 2026-01-01 to 2027-01-01",
+    "lossHistory": "LOSS HISTORY (5-YEAR)\n\n2 claims | $70,300 total | LR: 0.42 vs 0.58 industry median\n2022: Equipment Breakdown | $47,200 | Closed\n2019: GL Premises Slip/Fall (GL-2019-0047) | $23,100 | Closed\n\nLR 0.42 is 28% below median. No adverse trend. No open claims.",
+    "catExposure": "CAT EXPOSURE\n\nColumbus OH | Wind Zone 2 (Moderate) | Flood Zone X (Minimal) | Seismic: Low\nPML 1-in-100yr: $2,100,000 (24.7% of TIV)\nTreaty: $5,000,000 | Capacity used: 42% - within treaty",
+    "indicatedPremium": "INDICATED PREMIUM\n\nISO Base Rate: 0.00965 | Rate Factor: 0.82\nProperty: $68,400 | GL: $41,200 | IM: $8,800 | Fees: $5,600\nTotal Indicated: $124,000 | Requested: $112,000 | Variance: +10.7%\nCoinsurance 80%: PASS",
+    "riskAssessment": "RISK ASSESSMENT - 74/100 - GOOD\n\n[AMBER 91%] Hot Work - No permit protocol. PRE-BIND: written program + fire watch.\n[AMBER 88%] Supplier Concentration - 67% single-source steel. Annual diversification attestation.\n[AMBER 84%] GL Premises - 1 slip/fall 2019. PRE-BIND: premises safety inspection.",
+    "recommendation": "RECOMMENDATION: BIND WITH CONDITIONS\n\n1. Written hot work permit program + fire watch protocol (PRE-BIND)\n2. Completed premises safety inspection report (PRE-BIND)\n3. Annual supplier diversification attestation\n4. Quarterly loss monitoring - policy year 1\n5. SERFF filing confirmation - ISO CP 00 10, OH admitted\n\nAll AI decisions carry full source citations and confidence scores."
+  }
+}

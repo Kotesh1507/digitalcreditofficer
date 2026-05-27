@@ -6,6 +6,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // ── Digital Credit Officer (existing, port 5000) ──────────────────────
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
@@ -14,6 +15,18 @@ export default defineConfig({
         target: 'http://localhost:5000',
         ws: true,
         changeOrigin: true,
+      },
+      // ── Insurance Underwriting Officer (new, port 5001) ───────────────────
+      '/insurance-api': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/insurance-api/, ''),
+      },
+      '/insurance-socket': {
+        target: 'http://localhost:5001',
+        ws: true,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/insurance-socket/, '/socket.io'),
       },
     },
   },
