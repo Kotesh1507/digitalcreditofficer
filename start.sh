@@ -1,21 +1,27 @@
 #!/usr/bin/env bash
-# Starts both backends and nginx reverse proxy inside the Docker container.
-# CDO backend  → port 5000
-# Insurance backend → port 5001
-# Nginx        → port 80 (routes /insurance-socket, /insurance-api to 5001; rest to 5000)
+# Starts both Flask backends + nginx inside the Docker container.
+#
+# Port layout:
+#   5002  →  CDO backend (Digital Credit Officer)
+#   5003  →  Insurance backend (Underwriting Officer)
+#   5000  →  nginx (public-facing — ALB routes to this port)
+#
 set -euo pipefail
 
-echo "[start.sh] Starting Digital Credit Officer backend on :5000..."
+echo "[start.sh] Starting Digital Credit Officer backend on :5002..."
 cd /app/backend
-gunicorn --worker-class eventlet -w 1 --timeout 0 --bind 0.0.0.0:5000 app:app &
+gunicorn --worker-class eventlet -w 1 --timeout 0 --bind 0.0.0.0:5002 app:app &
 
-echo "[start.sh] Starting Insurance Underwriting Officer backend on :5001..."
+echo "[start.sh] Starting Insurance Underwriting Officer backend on :5003..."
 cd /app/backend-insurance
-gunicorn --worker-class threading -w 1 --timeout 0 --bind 0.0.0.0:5001 app:app &
+gunicorn --worker-class threading -w 1 --timeout 0 --bind 0.0.0.0:5003 app:app &
 
-echo "[start.sh] Starting nginx on :80..."
+# Give backends 3s to start before nginx begins accepting traffic
+sleep 3
+
+echo "[start.sh] Starting nginx on :5000..."
 nginx -g "daemon off;" &
 
-# Wait for any process to exit, then exit with its code
+# Wait — if any process dies, exit so ECS restarts the task
 wait -n || true
 echo "[start.sh] A process exited — container stopping."
