@@ -155,8 +155,10 @@ def create_tavus_conversation():
         "conversational_context": build_tavus_context(),
         "properties": {
             "max_call_duration": 600,
-            "participant_left_timeout": 30,
+            "participant_left_timeout": 60,
             "enable_recording": False,
+            "apply_greenscreen": False,
+            "language": "english",
         },
     }
     if TAVUS_REPLICA_ID:

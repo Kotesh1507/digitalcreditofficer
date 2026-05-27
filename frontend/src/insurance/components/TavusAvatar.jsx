@@ -110,9 +110,6 @@ export default function TavusAvatar() {
         setStatus('live');
         setCallObject(call);
         Object.values(call.participants()).forEach(applyTracks);
-        // Sync mic state after join
-        const { micEnabled } = useInsuranceStore.getState();
-        try { call.setLocalAudio(micEnabled); } catch (_) {}
 
         // Send idle greeting after join settles
         const { phase: currentPhase } = useInsuranceStore.getState();
@@ -173,16 +170,24 @@ export default function TavusAvatar() {
       });
 
       try {
-        // Pre-acquire mic device so Daily.js can use it even if startAudioOff
-        // Without this, setLocalAudio(true) after join silently fails
+        // Always pre-acquire mic so Daily can use it — required for setLocalAudio to work later
+        let micAvailable = false;
         try {
           await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          micAvailable = true;
         } catch (_) {
           console.warn('[Aria] Mic pre-acquire failed — voice input disabled');
         }
+        // Always join with audio ON (startAudioOff: false) if mic is available.
+        // This ensures the audio track exists and setLocalAudio(false) can mute it later.
+        // If mic is not available, join without audio.
         const { micEnabled } = useInsuranceStore.getState();
-        await call.join({ url: conversationUrl, startVideoOff: true, startAudioOff: !micEnabled });
-        console.log('[Aria] Joined successfully. Mic:', micEnabled ? 'ON' : 'OFF');
+        await call.join({ url: conversationUrl, startVideoOff: true, startAudioOff: !micAvailable });
+        // After join, apply the current mic toggle state
+        if (micAvailable) {
+          try { call.setLocalAudio(micEnabled); } catch (_) {}
+        }
+        console.log('[Aria] Joined successfully. MicAvailable:', micAvailable, '| MicEnabled:', micEnabled);
       } catch (err) {
         console.error('[Aria] join failed:', err.message);
         if (!cancelled) {
