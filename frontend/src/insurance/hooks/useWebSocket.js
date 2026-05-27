@@ -3,18 +3,12 @@ import { io } from 'socket.io-client';
 import { useInsuranceStore } from '../store/index.js';
 import confetti from 'canvas-confetti';
 
-// In dev, connect directly to port 5001. In production (Docker), same origin on port 5001.
+const IS_DEV = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const SERVER_URL = import.meta.env.VITE_INSURANCE_SERVER_URL
-  || (window.location.hostname === 'localhost'
-      ? 'http://localhost:5002'
-      : window.location.origin.replace(/:\d+$/, ':5002'));
+  || (IS_DEV ? 'http://localhost:5002' : window.location.origin);
 
 const DEFLECT_SCRIPT =
   "Good question. For a deeper conversation, let's set this up properly — scan the QR code and we'll look at your submission together.";
-
-// Session nonce — incremented on every 'connected' event so stale
-// 'tavus_session' events from previous sessions are silently dropped.
-let _sessionNonce = 0;
 
 export function useWebSocket() {
   const socketRef = useRef(null);
@@ -35,7 +29,7 @@ export function useWebSocket() {
 
   useEffect(() => {
     const socket = io(SERVER_URL, {
-      transports: ['polling', 'websocket'],
+      transports: ['websocket', 'polling'],
       reconnectionDelay: 2000,
       reconnectionAttempts: Infinity,
     });
@@ -51,45 +45,14 @@ export function useWebSocket() {
       setSocket(null);
     });
 
-    socket.on('connected', async (data) => {
-      // Bump nonce — any tavus_session event carrying an older nonce is stale
-      _sessionNonce += 1;
-      const myNonce = _sessionNonce;
-      console.log('[Insurance WS] connected — session nonce', myNonce);
-
+    socket.on('connected', (data) => {
       setSessionId(data.sessionId);
-      // Fully destroy any existing Daily call so TavusAvatar starts fresh
-      const existingCall = window.__ariaCall;
-      window.__ariaCall   = null;
-      window.__ariaUrl    = null;
-      window.__ariaJoined = false;
-      if (existingCall) {
-        try { await existingCall.leave(); }   catch (_) {}
-        try { existingCall.destroy(); }       catch (_) {}
-      }
-      // Also destroy any Daily singleton we don't own
-      try {
-        const inst = window.DailyIframe?.getCallInstance?.();
-        if (inst && inst !== existingCall) {
-          try { await inst.leave(); } catch (_) {}
-          try { inst.destroy(); }     catch (_) {}
-        }
-      } catch (_) {}
-      useInsuranceStore.getState().setTavusSession(null, null);
-      useInsuranceStore.getState().setCallObject(null);
-      // Request fresh Tavus session from backend — give Daily time to clean up
-      setTimeout(() => {
-        if (_sessionNonce === myNonce) {
-          console.log('[Insurance WS] Requesting fresh Tavus session (nonce', myNonce, ')');
-          socket.emit('init_tavus');
-        }
-      }, 800);
+      // Request Tavus session — backend creates fresh conversation
+      setTimeout(() => socket.emit('init_tavus'), 500);
     });
 
     socket.on('tavus_session', (data) => {
-      // Discard events that arrived before the latest 'connected' cleanup
-      const nonce = _sessionNonce;
-      console.log('[Insurance WS] tavus_session received (nonce', nonce, '):', data.conversationId, data.conversationUrl?.slice(0,40));
+      console.log('[Insurance WS] tavus_session:', data.conversationId, data.conversationUrl?.slice(0, 40));
       setTavusSession(data.conversationId, data.conversationUrl);
     });
 
@@ -112,7 +75,6 @@ export function useWebSocket() {
       }
     });
 
-    // Stress test: interrupt ongoing speech and say the scenario line
     socket.on('scenario_result', (data) => {
       applyScenario(data.scenario);
       if (data.scenario.avatarScript) {
@@ -120,13 +82,11 @@ export function useWebSocket() {
       }
     });
 
-    // Q&A chip: interrupt and speak the scripted answer
     socket.on('qa_answer', (data) => {
       setQAAnswer(data.questionId, data.answer);
       if (data.script) sendInterruptAndClear(data.script);
     });
 
-    // Freeform: show QR + deflect
     socket.on('freeform_deflect', (data) => {
       showDeflect();
       sendInterruptAndClear(data?.script || DEFLECT_SCRIPT);

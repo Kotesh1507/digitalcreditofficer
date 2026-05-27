@@ -7,6 +7,7 @@ import { useInsuranceStore, PHASE } from './store/index.js';
 import { useWebSocket }  from './hooks/useWebSocket.js';
 import { useAutoplay }   from './hooks/useAutoplay.js';
 
+
 import LandingScreen    from './components/LandingScreen.jsx';
 import IdleScreen       from './components/IdleScreen.jsx';
 import TavusAvatar      from './components/TavusAvatar.jsx';
@@ -69,18 +70,7 @@ export default function InsuranceApp() {
             {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
           <button
-            onClick={async () => {
-              if (!micEnabled) {
-                // Request browser mic permission first
-                try {
-                  await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                } catch (e) {
-                  console.warn('[Mic] Permission denied — click the lock icon in the address bar → allow microphone');
-                  return;
-                }
-              }
-              toggleMic();
-            }}
+            onClick={() => toggleMic()}
             className={`relative p-2 rounded-lg border transition-all ${micEnabled
               ? 'bg-green-50 border-green-400 text-green-700'
               : 'bg-purple-50 border-purple-200 text-purple-600 hover:bg-purple-100'}`}
