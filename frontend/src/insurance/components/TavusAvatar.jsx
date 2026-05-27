@@ -9,196 +9,173 @@ const IDLE_GREETING =
   "Drop your submission packet on the right, or tap the demo button, and I'll build " +
   "the full underwriting memo in 90 seconds. Every risk flag, every ratio, fully cited.";
 
+// Module-level ref — survives React re-renders and StrictMode double-mounts
+// Exactly one Daily call object exists at any time
+let _activeCall = null;
+
+async function destroyActiveCall() {
+  const call = _activeCall;
+  _activeCall = null;
+  window.__ariaCall   = null;
+  window.__ariaJoined = false;
+  if (!call) return;
+  try { await call.leave(); } catch (_) {}
+  try { call.destroy();     } catch (_) {}
+}
+
 export default function TavusAvatar() {
   const conversationUrl     = useInsuranceStore((s) => s.tavusConversationUrl);
-  const tavusConversationId = useInsuranceStore((s) => s.tavusConversationId);
   const phase               = useInsuranceStore((s) => s.phase);
   const muted               = useInsuranceStore((s) => s.muted);
   const micEnabled          = useInsuranceStore((s) => s.micEnabled);
   const setCallObject       = useInsuranceStore((s) => s.setCallObject);
   const onStopped           = useInsuranceStore((s) => s.onAvatarStoppedSpeaking);
 
-  const videoRef  = useRef(null);
-  const audioRef  = useRef(null);
+  const videoRef = useRef(null);
+  const audioRef = useRef(null);
   const [status, setStatus]           = useState('idle');
   const [audioLocked, setAudioLocked] = useState(false);
 
   useEffect(() => {
     if (!conversationUrl) return;
 
-    setStatus('joining');
-    console.log('[Aria] Creating call for', conversationUrl);
+    let cancelled = false;
 
-    // Destroy any existing Daily singleton before creating a new one
-    // (React StrictMode mounts twice — this prevents "Duplicate instances" error)
-    try {
-      const existing = DailyIframe.getCallInstance();
-      if (existing) {
-        try { existing.leave(); } catch (_) {}
-        try { existing.destroy(); } catch (_) {}
+    async function init() {
+      setStatus('joining');
+      console.log('[Aria] init — destroying old call then joining', conversationUrl.slice(-12));
+
+      // Destroy previous call first — await so it's fully gone before creating new
+      await destroyActiveCall();
+      if (cancelled) return;
+
+      // Create fresh call
+      let call;
+      try {
+        call = DailyIframe.createCallObject({ subscribeToTracksAutomatically: true });
+      } catch (e) {
+        console.error('[Aria] createCallObject failed:', e.message);
+        if (!cancelled) setStatus('error');
+        return;
       }
-    } catch (_) {}
 
-    let call;
-    try {
-      call = DailyIframe.createCallObject({ subscribeToTracksAutomatically: true });
-    } catch (e) {
-      console.error('[Aria] createCallObject failed:', e.message);
-      setStatus('error');
-      return;
-    }
+      _activeCall       = call;
+      window.__ariaCall = call;
 
-    // ── Apply remote participant tracks to video/audio elements ──────────────
-    function applyTracks(participant) {
-      if (!participant || participant.local) return;
-
-      console.log('[Aria] Applying tracks for participant:', participant.session_id,
-        'video:', participant.tracks?.video?.state,
-        'audio:', participant.tracks?.audio?.state);
-
-      const vt = participant.tracks?.video?.persistentTrack;
-      const at = participant.tracks?.audio?.persistentTrack;
-
-      if (vt && videoRef.current) {
-        videoRef.current.srcObject = new MediaStream([vt]);
-        videoRef.current.play().catch(() => {});
-        console.log('[Aria] Video track attached');
+      // ── Track application ──────────────────────────────────────────────────
+      function applyTracks(participant) {
+        if (!participant || participant.local) return;
+        const vt = participant.tracks?.video?.persistentTrack;
+        const at = participant.tracks?.audio?.persistentTrack;
+        if (vt && videoRef.current) {
+          videoRef.current.srcObject = new MediaStream([vt]);
+          videoRef.current.play().catch(() => {});
+          console.log('[Aria] Video track attached');
+        }
+        if (at && audioRef.current) {
+          audioRef.current.srcObject = new MediaStream([at]);
+          audioRef.current.play()
+            .then(() => setAudioLocked(false))
+            .catch(() => setAudioLocked(true));
+          console.log('[Aria] Audio track attached');
+        }
       }
-      if (at && audioRef.current) {
-        audioRef.current.srcObject = new MediaStream([at]);
-        audioRef.current.play()
-          .then(() => setAudioLocked(false))
-          .catch(() => setAudioLocked(true));
-        console.log('[Aria] Audio track attached');
-      }
-    }
 
-    // ── Joined ───────────────────────────────────────────────────────────────
-    call.on('joined-meeting', () => {
-      console.log('[Aria] Joined meeting');
-      setStatus('live');
-      setCallObject(call);
+      // ── Events ────────────────────────────────────────────────────────────
+      call.on('joined-meeting', () => {
+        if (cancelled) return;
+        window.__ariaJoined = true;
+        setStatus('live');
+        setCallObject(call);
+        Object.values(call.participants()).forEach(applyTracks);
 
-      // Store singleton refs so store actions (sendAppMessage) can reach the call
-      window.__ariaCall    = call;
-      window.__ariaJoined  = true;
+        // Send idle greeting
+        const { phase: p, tavusConversationId: cid } = useInsuranceStore.getState();
+        if (p === PHASE.IDLE || p === PHASE.LANDING) {
+          setTimeout(() => {
+            if (cancelled) return;
+            try {
+              call.sendAppMessage({
+                message_type: 'conversation', event_type: 'conversation.echo',
+                conversation_id: cid, properties: { text: IDLE_GREETING },
+              });
+            } catch (e) { console.warn('[Aria] greeting failed:', e.message); }
+          }, 2500);
+        }
+      });
 
-      Object.values(call.participants()).forEach(applyTracks);
+      call.on('participant-joined',  ({ participant }) => { if (!cancelled) applyTracks(participant); });
+      call.on('participant-updated', ({ participant }) => { if (!cancelled) applyTracks(participant); });
 
-      // Sync mic state
-      try { call.setLocalAudio(micEnabled); } catch (_) {}
+      call.on('track-started', ({ participant, track }) => {
+        if (participant.local || cancelled) return;
+        if (track.kind === 'video' && videoRef.current) {
+          videoRef.current.srcObject = new MediaStream([track]);
+          videoRef.current.play().catch(() => {});
+        }
+        if (track.kind === 'audio' && audioRef.current) {
+          audioRef.current.srcObject = new MediaStream([track]);
+          audioRef.current.play()
+            .then(() => setAudioLocked(false))
+            .catch(() => setAudioLocked(true));
+        }
+      });
 
-      // Send idle greeting
-      const { phase: currentPhase, tavusConversationId: convId } = useInsuranceStore.getState();
-      if (currentPhase === PHASE.IDLE || currentPhase === PHASE.LANDING) {
-        setTimeout(() => {
-          console.log('[Aria] Sending idle greeting');
-          try {
-            call.sendAppMessage({
-              message_type:    'conversation',
-              event_type:      'conversation.echo',
-              conversation_id: convId,
-              properties:      { text: IDLE_GREETING },
-            });
-          } catch (e) {
-            console.warn('[Aria] sendAppMessage failed:', e.message);
-          }
-        }, 2500);
-      }
-    });
+      call.on('app-message', ({ data }) => {
+        if (
+          data?.event_type === 'conversation.replica_stopped_speaking' ||
+          data?.event_type === 'conversation.stopped_speaking'
+        ) { onStopped(); }
+      });
 
-    // ── Participant events ───────────────────────────────────────────────────
-    call.on('participant-joined',  ({ participant }) => {
-      console.log('[Aria] Participant joined:', participant.session_id);
-      applyTracks(participant);
-    });
+      call.on('error', (e) => {
+        console.error('[Aria] call error:', e);
+        if (!cancelled) setStatus('error');
+      });
 
-    call.on('participant-updated', ({ participant }) => {
-      applyTracks(participant);
-    });
-
-    // ── Fallback: raw track event ────────────────────────────────────────────
-    call.on('track-started', ({ participant, track }) => {
-      console.log('[Aria] track-started', track.kind, 'local:', participant.local);
-      if (participant.local) return;
-      if (track.kind === 'video' && videoRef.current) {
-        videoRef.current.srcObject = new MediaStream([track]);
-        videoRef.current.play().catch(() => {});
-      }
-      if (track.kind === 'audio' && audioRef.current) {
-        audioRef.current.srcObject = new MediaStream([track]);
-        audioRef.current.play()
-          .then(() => setAudioLocked(false))
-          .catch(() => setAudioLocked(true));
-      }
-    });
-
-    // ── Speech queue drain ───────────────────────────────────────────────────
-    call.on('app-message', ({ data }) => {
-      console.log('[Aria] app-message:', data?.event_type);
-      if (
-        data?.event_type === 'conversation.replica_stopped_speaking' ||
-        data?.event_type === 'conversation.stopped_speaking'
-      ) {
-        onStopped();
-      }
-    });
-
-    call.on('error', (e) => {
-      console.error('[Aria] Error:', e);
-      setStatus('error');
-    });
-
-    // ── Join (async IIFE so we can await mic check) ───────────────────────────
-    let destroyed = false;
-
-    (async () => {
-      // Check if a mic device exists — if not, join audio-off silently
+      // ── Join ──────────────────────────────────────────────────────────────
+      // Check mic availability silently
       let micAvailable = false;
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         micAvailable = devices.some((d) => d.kind === 'audioinput');
-      } catch (_) {}
-
-      if (micAvailable) {
-        try {
+        if (micAvailable) {
           await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        } catch (_) {
-          micAvailable = false;
         }
-      }
+      } catch (_) { micAvailable = false; }
 
-      if (destroyed) return;
+      if (cancelled) return;
 
       const { micEnabled: mic } = useInsuranceStore.getState();
-      console.log('[Aria] Joining. MicDevice:', micAvailable, '| MicEnabled:', mic);
+      console.log('[Aria] Joining. MicAvailable:', micAvailable, '| MicEnabled:', mic);
 
-      call.join({
-        url: conversationUrl,
-        startVideoOff: true,
-        startAudioOff: !micAvailable,
-      })
-        .then(() => {
-          if (destroyed) return;
-          console.log('[Aria] Join resolved');
-          if (micAvailable) {
-            try { call.setLocalAudio(mic); } catch (_) {}
-          }
-        })
-        .catch((err) => {
-          if (destroyed) return;
-          console.error('[Aria] Join failed:', err.message);
-          setStatus('error');
-        });
-    })();
+      try {
+        await call.join({ url: conversationUrl, startVideoOff: true, startAudioOff: !micAvailable });
+        if (cancelled) return;
+        console.log('[Aria] Joined successfully');
+        if (micAvailable) {
+          try { call.setLocalAudio(mic); } catch (_) {}
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.error('[Aria] Join failed:', err.message);
+        setStatus('error');
+      }
+    }
 
-    // ── Cleanup ──────────────────────────────────────────────────────────────
+    init();
+
     return () => {
-      destroyed = true;
-      window.__ariaCall   = null;
+      cancelled = true;
       window.__ariaJoined = false;
       setCallObject(null);
-      call.leave().catch(() => {}).finally(() => { try { call.destroy(); } catch (_) {} });
+      // Don't await — fire and forget on cleanup
+      if (_activeCall) {
+        const c = _activeCall;
+        _activeCall = null;
+        window.__ariaCall = null;
+        c.leave().catch(() => {}).finally(() => { try { c.destroy(); } catch (_) {} });
+      }
     };
   }, [conversationUrl]); // eslint-disable-line
 
@@ -207,11 +184,10 @@ export default function TavusAvatar() {
     if (audioRef.current) audioRef.current.muted = muted;
   }, [muted]);
 
-  // Sync mic toggle → live call
+  // Sync mic button → live call
   useEffect(() => {
-    const call = window.__ariaCall;
-    if (!call || !window.__ariaJoined) return;
-    try { call.setLocalAudio(micEnabled); } catch (_) {}
+    if (!window.__ariaCall || !window.__ariaJoined) return;
+    try { window.__ariaCall.setLocalAudio(micEnabled); } catch (_) {}
   }, [micEnabled]);
 
   function unlockAudio() {
