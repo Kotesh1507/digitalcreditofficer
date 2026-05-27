@@ -29,7 +29,7 @@ export function useWebSocket() {
 
   useEffect(() => {
     const socket = io(SERVER_URL, {
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       reconnectionDelay: 2000,
       reconnectionAttempts: Infinity,
     });
@@ -47,8 +47,6 @@ export function useWebSocket() {
 
     socket.on('connected', (data) => {
       setSessionId(data.sessionId);
-      // Request Tavus session — backend creates fresh conversation
-      setTimeout(() => socket.emit('init_tavus'), 500);
     });
 
     socket.on('tavus_session', (data) => {
