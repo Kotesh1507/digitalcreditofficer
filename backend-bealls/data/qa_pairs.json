@@ -1,0 +1,38 @@
+{
+  "store_0214_down": {
+    "script": "Store 0214 is down eight point three percent comp, driven by a fourteen percent Apparel traffic decline, a conversion miss, and basket contraction in twenty-five to fifty dollar SKUs.",
+    "answer": "Store 0214: -8.3% comp. Primary driver: Apparel traffic -14% WoW. Conversion below cluster on same promo. Basket soft in $25–$50 tier. Three replenishment lines OOS in week 2."
+  },
+  "apparel_forecast": {
+    "script": "Apparel projects four point two to four point eight million over twelve weeks, base four point five. Promo week six adds three hundred forty thousand. Seasonal tail weeks nine through eleven is the main downside risk.",
+    "answer": "12-week Apparel: $4.2M–$4.8M (base $4.5M). Promo W6 +$340K. Downside risk: seasonal tail W9–W11."
+  },
+  "store_0142_peers": {
+    "script": "Store 0142 trails the cluster median by nine percent. Peer Store 0318 — identical floor plan — runs plus five point two. The gap is execution, not demand.",
+    "answer": "Store 0142 trails cluster median by 9.1pp. Peer 0318 (same footprint) at +5.2% comp. Gap is traffic and conversion execution, not market demand."
+  },
+  "manager_action": {
+    "script": "Three moves. Fix Apparel traffic on the front pad, backfill the three week-two outs, and run a conversion huddle on the promo end-cap — 318 is your template.",
+    "answer": "Priority actions: (1) Apparel front-pad traffic fix, (2) backfill 3 week-2 OOS SKUs, (3) conversion huddle using Store 318 end-cap playbook."
+  },
+  "apparel_problem": {
+    "script": "Apparel is down fourteen on traffic with no event to blame. Footwear is actually positive — this is localized to Apparel execution and assortment on the floor.",
+    "answer": "Apparel -14% traffic, no calendar event. Footwear +2.1% UPT. Issue is Apparel floor execution/assortment, not chain-wide demand."
+  },
+  "peer_318": {
+    "script": "Same footprint, same cluster, same promo — 318 is plus five point two because traffic and conversion are both in line. Copy staffing and end-cap discipline, not the assortment.",
+    "answer": "Store 318: +5.2% comp, same footprint/promo as 0142. Wins on traffic + conversion execution — replicate staffing and end-cap discipline."
+  },
+  "alert_apparel_traffic": {
+    "script": "Apparel traffic is off twelve percent week over week at 0214. No calendar event — I'd walk signage and the front-of-store Apparel pad first.",
+    "answer": "Apparel traffic -12% WoW at 0214. No promo/holiday in window — check signage and front-of-store Apparel pad."
+  },
+  "alert_oos": {
+    "script": "Three replenishment lines are out in week two — that's hitting basket in the twenty-five to fifty dollar tier. I'd prioritize backfill before we spend on traffic.",
+    "answer": "3 replenishment SKUs OOS week 2 at 0214. Hurting $25–$50 basket tier — backfill before traffic spend."
+  },
+  "alert_footwear": {
+    "script": "Footwear units per transaction are up two point one percent — the end-cap placement is working. I'd extend that setup to the adjacent bay.",
+    "answer": "Footwear UPT +2.1% at 0214. End-cap working — extend placement to adjacent bay."
+  }
+}

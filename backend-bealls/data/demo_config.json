@@ -1,0 +1,121 @@
+{
+  "demo_name": "Bealls Sales Command Center",
+  "version": "1.0.0",
+  "personas": [
+    {
+      "id": "store_manager",
+      "name": "Store Manager",
+      "color": "#f05252",
+      "icon": "building-store",
+      "default_agent": "diagnostics",
+      "default_store": "0214"
+    },
+    {
+      "id": "merchandiser",
+      "name": "Merchandiser",
+      "color": "#4f7ef8",
+      "icon": "chart-line",
+      "default_agent": "forecast",
+      "default_category": "Apparel"
+    },
+    {
+      "id": "regional_vp",
+      "name": "Regional VP",
+      "color": "#22d3b8",
+      "icon": "users-group",
+      "default_agent": "store_comparison",
+      "default_store": "0142"
+    }
+  ],
+  "demo_script": {
+    "act_1": {
+      "name": "Dashboard Scan",
+      "duration_seconds": 60,
+      "description": "Open dashboard, walk through KPIs, point to Store 0214 alert"
+    },
+    "act_2": {
+      "name": "Diagnostic",
+      "duration_seconds": 120,
+      "persona": "store_manager",
+      "query": "Why is Store 0214 down?",
+      "follow_up": "Show me the OOS SKUs in week 2"
+    },
+    "act_3": {
+      "name": "Forecast and Peer Benchmark",
+      "duration_seconds": 180,
+      "steps": [
+        {
+          "persona": "merchandiser",
+          "query": "What is the 12-week Apparel forecast?",
+          "what_if": "promo_pull_forward_2w"
+        },
+        {
+          "persona": "regional_vp",
+          "query": "Why does Store 142 lag its cluster?"
+        }
+      ]
+    }
+  },
+  "canonical_stores": {
+    "0214": {
+      "name": "Store 0214",
+      "city": "Jacksonville, FL",
+      "region": "Southeast",
+      "cluster_id": 5,
+      "demo_narrative": "Down 8.3% comp, Apparel traffic -12%, conversion miss"
+    },
+    "0142": {
+      "name": "Store 142",
+      "city": "Dallas, TX",
+      "region": "Central",
+      "cluster_id": 7,
+      "demo_narrative": "Trails cluster by 9.1%, execution gap vs peer 318"
+    },
+    "0318": {
+      "name": "Store 318",
+      "city": "Mesquite, TX",
+      "region": "Central",
+      "cluster_id": 7,
+      "demo_narrative": "Top performer +5.2%, same footprint as 142"
+    },
+    "0407": {
+      "name": "Store 407",
+      "city": "Garland, TX",
+      "region": "Central",
+      "cluster_id": 7,
+      "demo_narrative": "Conversion leader at 3.1%"
+    }
+  },
+  "alerts": [
+    {
+      "id": "alert_1",
+      "type": "red",
+      "icon": "alert-triangle",
+      "text": "Apparel traffic -12%",
+      "store_id": "0214",
+      "pre_seeded_prompt": "Why is Apparel traffic down at Store 0214?"
+    },
+    {
+      "id": "alert_2",
+      "type": "amber",
+      "icon": "package-off",
+      "text": "3 SKUs OOS Week 2",
+      "store_id": "0214",
+      "pre_seeded_prompt": "Show me the OOS SKUs at Store 0214"
+    },
+    {
+      "id": "alert_3",
+      "type": "green",
+      "icon": "trending-up",
+      "text": "Footwear UPT +2.1%",
+      "store_id": "0214",
+      "pre_seeded_prompt": "What's driving Footwear performance at Store 0214?"
+    }
+  ],
+  "tavus_config": {
+    "persona_name": "Maya",
+    "persona_role": "AI Analyst",
+    "welcome_script": "Welcome to the Sales Command Center. I'm Maya, your AI analyst. Ask me why a store is down, what next quarter looks like, or how any store stacks up against its peers.",
+    "fallback_timeout_ms": 3000
+  }
+}
