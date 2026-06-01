@@ -1,0 +1,134 @@
+{
+  "demo_flow": {
+    "total_steps": 12,
+    "auto_advance": false,
+    "step_delay_ms": 500
+  },
+  "steps": [
+    {
+      "step": 1,
+      "name": "dashboard_load",
+      "description": "Dashboard loads with KPIs and alerts",
+      "delay_ms": 0,
+      "ui_action": "show_dashboard",
+      "narration": "The Sales Command Center shows your KPIs at a glance."
+    },
+    {
+      "step": 2,
+      "name": "kpi_highlight",
+      "description": "KPI tiles highlight with current values",
+      "delay_ms": 1000,
+      "ui_action": "animate_kpis",
+      "narration": null
+    },
+    {
+      "step": 3,
+      "name": "alerts_appear",
+      "description": "Alert chips animate in",
+      "delay_ms": 1500,
+      "ui_action": "show_alerts",
+      "narration": "Active alerts surface automatically."
+    },
+    {
+      "step": 4,
+      "name": "avatar_greeting",
+      "description": "Maya avatar delivers welcome",
+      "delay_ms": 2000,
+      "ui_action": "play_tavus_greeting",
+      "narration": "Welcome to the Sales Command Center. Ask me anything."
+    },
+    {
+      "step": 5,
+      "name": "alert_click",
+      "description": "Store 0214 alert is clicked",
+      "delay_ms": 0,
+      "ui_action": "click_alert",
+      "trigger": "user_click",
+      "narration": null
+    },
+    {
+      "step": 6,
+      "name": "chat_open",
+      "description": "Chat panel opens with pre-seeded prompt",
+      "delay_ms": 300,
+      "ui_action": "open_chat",
+      "pre_seeded_prompt": "Why is Store 0214 down?",
+      "narration": null
+    },
+    {
+      "step": 7,
+      "name": "agent_routing",
+      "description": "Query routes to Diagnostics Agent",
+      "delay_ms": 500,
+      "ui_action": "show_routing",
+      "agent": "diagnostics",
+      "narration": null
+    },
+    {
+      "step": 8,
+      "name": "reasoning_trace",
+      "description": "Agent reasoning steps animate",
+      "delay_ms": 2000,
+      "ui_action": "animate_reasoning",
+      "narration": null
+    },
+    {
+      "step": 9,
+      "name": "response_render",
+      "description": "Verdict and findings render",
+      "delay_ms": 3500,
+      "ui_action": "render_response",
+      "narration": "Store 0214 is down 8.3% comp..."
+    },
+    {
+      "step": 10,
+      "name": "avatar_speaks",
+      "description": "Maya speaks the verdict",
+      "delay_ms": 4000,
+      "ui_action": "tavus_speak",
+      "narration": null
+    },
+    {
+      "step": 11,
+      "name": "drill_down_prompt",
+      "description": "Drill-down suggestions appear",
+      "delay_ms": 6000,
+      "ui_action": "show_drill_downs",
+      "narration": null
+    },
+    {
+      "step": 12,
+      "name": "demo_complete",
+      "description": "Demo flow complete, ready for follow-up",
+      "delay_ms": 7000,
+      "ui_action": "enable_freeform",
+      "narration": null
+    }
+  ],
+  "agent_reasoning_steps": {
+    "diagnostics": [
+      {"action": "get_store_sales(store_id, last_2w)", "duration_ms": 400},
+      {"action": "get_store_traffic(store_id, last_2w)", "duration_ms": 350},
+      {"action": "get_calendar_overlay(last_2w)", "duration_ms": 300},
+      {"action": "Check for calendar events", "duration_ms": 200},
+      {"action": "Decompose variance: traffic × conversion × basket × mix", "duration_ms": 600},
+      {"action": "Emit verdict + findings", "duration_ms": 400}
+    ],
+    "forecast": [
+      {"action": "get_forecast(category, 12)", "duration_ms": 450},
+      {"action": "get_forecast_band(category, 12, 0.8)", "duration_ms": 400},
+      {"action": "get_calendar_overlay(next_12w)", "duration_ms": 300},
+      {"action": "get_category_sales(category, last_12w)", "duration_ms": 350},
+      {"action": "Build band + driver decomposition", "duration_ms": 500},
+      {"action": "Emit forecast verdict", "duration_ms": 400}
+    ],
+    "store_comparison": [
+      {"action": "get_store_sales(store_id, last_4w)", "duration_ms": 400},
+      {"action": "get_cluster_assignment(store_id)", "duration_ms": 250},
+      {"action": "get_cluster_members(cluster_id)", "duration_ms": 350},
+      {"action": "get_store_sales for top 3 peers", "duration_ms": 600},
+      {"action": "Decompose gap: traffic · conversion · basket · mix", "duration_ms": 500},
+      {"action": "Emit verdict with named peer context", "duration_ms": 400}
+    ]
+  }
+}
