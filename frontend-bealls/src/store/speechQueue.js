@@ -21,12 +21,12 @@ export function createSpeechActions(get, set, deps) {
       const call = get().callObject;
       if (call) bindCall(call, get().tavusConversationId);
       if (!isCallJoined()) {
-        set({ tavusError: 'Maya is not LIVE. Click Start Maya first.' });
+        set({ tavusError: 'Analyst is not LIVE. Click Start Analyst first.' });
         return false;
       }
       const ok = sendEchoMessage(line);
       if (!ok) {
-        set({ tavusError: 'Could not send speech to Maya. Try End Session → Start Maya.' });
+        set({ tavusError: 'Could not send speech to analyst. Try End Session → Start Analyst.' });
       } else {
         set({ tavusError: null });
       }

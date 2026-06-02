@@ -1,16 +1,54 @@
 """
 Forecast MCP Server
 Tools for category forecasts, confidence bands, and what-if scenarios
+Data source: S3 bucket s3://bealls-bucket/retail_data/json/forecast.json
 """
 
+import os
+import json
+import boto3
 from datetime import datetime, timedelta
 import math
 
 
 class ForecastMCP:
     def __init__(self):
+        self.s3_client = None
+        self.bucket = os.getenv('S3_BUCKET', 'bealls-bucket')
+        self.prefix = os.getenv('S3_DATA_PREFIX', 'retail_data/json/')
+        self._cache = {}
+        self._init_s3()
         self.base_forecasts = self._build_base_forecasts()
         self.scenarios = self._build_scenarios()
+
+    def _init_s3(self):
+        try:
+            self.s3_client = boto3.client(
+                's3',
+                aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+                region_name=os.getenv('AWS_REGION', 'us-east-1')
+            )
+        except Exception as e:
+            print(f"[ForecastMCP] S3 init warning: {e}")
+            self.s3_client = None
+
+    def _load_from_s3(self, key):
+        if key in self._cache:
+            return self._cache[key]
+
+        if self.s3_client:
+            try:
+                full_key = f"{self.prefix}{key}"
+                print(f"[ForecastMCP] Loading: s3://{self.bucket}/{full_key}")
+                response = self.s3_client.get_object(Bucket=self.bucket, Key=full_key)
+                data = json.loads(response['Body'].read().decode('utf-8'))
+                print(f"[ForecastMCP] Loaded {len(data)} records from {key}")
+                self._cache[key] = data
+                return data
+            except Exception as e:
+                print(f"[ForecastMCP] S3 load error for {key}: {e}")
+        return []
 
     def _build_base_forecasts(self) -> dict:
         """Build base forecast data by category"""
@@ -129,9 +167,42 @@ class ForecastMCP:
         }
 
     def get_forecast(self, category: str, weeks_forward: int) -> dict:
-        """Get base forecast for a category"""
-        cat_data = self.base_forecasts.get(category, self.base_forecasts['Apparel'])
+        """Get base forecast for a category from S3"""
+        # Try to load from S3 first
+        s3_forecast = self._load_from_s3('forecast.json')
 
+        if s3_forecast:
+            # Filter by category
+            cat_forecast = [f for f in s3_forecast
+                          if f.get('category_name', '').lower() == category.lower()
+                          and f.get('forecast_week', 0) <= weeks_forward]
+
+            if cat_forecast:
+                cat_forecast.sort(key=lambda x: x.get('forecast_week', 0))
+                weekly = []
+                for f in cat_forecast[:weeks_forward]:
+                    weekly.append({
+                        'week': f.get('forecast_week', 0),
+                        'forecast': round(f.get('forecast_base', 0) * 1000),  # Scale up
+                        'upper': round(f.get('forecast_upper_80', 0) * 1000),
+                        'lower': round(f.get('forecast_lower_80', 0) * 1000),
+                        'driver': f.get('driver_note', ''),
+                        'is_promo': f.get('is_promo_week', False)
+                    })
+
+                total = sum(w['forecast'] for w in weekly)
+                return {
+                    'category': category,
+                    'weeks_forward': weeks_forward,
+                    'base_total': total,
+                    'weekly_forecast': weekly,
+                    'growth_rate': 0.02,
+                    'last_updated': datetime.now().isoformat(),
+                    'data_source': 's3'
+                }
+
+        # Fallback to hardcoded data
+        cat_data = self.base_forecasts.get(category, self.base_forecasts['Apparel'])
         weekly = cat_data['base_weekly'][:weeks_forward]
         total = sum(weekly)
 
@@ -144,7 +215,8 @@ class ForecastMCP:
                 for i in range(len(weekly))
             ],
             'growth_rate': cat_data['growth_rate'],
-            'last_updated': datetime.now().isoformat()
+            'last_updated': datetime.now().isoformat(),
+            'data_source': 'fallback'
         }
 
     def get_forecast_band(self, category: str, weeks_forward: int, confidence: float) -> dict:

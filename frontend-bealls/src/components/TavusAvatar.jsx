@@ -1,7 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Daily from '@daily-co/daily-js';
-import { Video, Wifi, WifiOff, Loader, Volume2 } from 'lucide-react';
-import { joinConversation, ensureConversation, bindCall } from '../lib/tavusClient';
+import { Video, Wifi, WifiOff, Loader, Volume2, Mic, MicOff } from 'lucide-react';
+import {
+  joinConversation,
+  ensureConversation,
+  bindCall,
+  leaveConversation,
+} from '../lib/tavusClient';
 
 export {
   sendEchoMessage,
@@ -14,28 +19,34 @@ export {
 function TavusAvatar({
   conversationUrl,
   conversationId,
+  replicaLabel,
   onCallReady,
   onSpeakingDone,
   onStatusChange,
   onSessionEnded,
+  onUserUtterance,
 }) {
   const videoRef = useRef(null);
   const audioRef = useRef(null);
   const onCallReadyRef = useRef(onCallReady);
   const onSpeakingDoneRef = useRef(onSpeakingDone);
   const onSessionEndedRef = useRef(onSessionEnded);
+  const onUserUtteranceRef = useRef(onUserUtterance);
   const callRef = useRef(null);
   const greetedRef = useRef(false);
 
   const [status, setStatus] = useState('idle');
   const [audioLocked, setAudioLocked] = useState(false);
   const [errorDetail, setErrorDetail] = useState(null);
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [micError, setMicError] = useState(null);
 
   useEffect(() => {
     onCallReadyRef.current = onCallReady;
     onSpeakingDoneRef.current = onSpeakingDone;
     onSessionEndedRef.current = onSessionEnded;
-  }, [onCallReady, onSpeakingDone, onSessionEnded]);
+    onUserUtteranceRef.current = onUserUtterance;
+  }, [onCallReady, onSpeakingDone, onSessionEnded, onUserUtterance]);
 
   useEffect(() => {
     if (onStatusChange) onStatusChange(status);
@@ -74,9 +85,23 @@ function TavusAvatar({
 
     function bindOngoingListeners(call) {
       call.on('participant-joined', ({ participant }) => {
-        if (!participant.local) applyTracks(participant);
+        if (participant?.local) {
+          const micOn = participant.audio === true;
+          setMicEnabled(micOn);
+          if (micOn) setMicError(null);
+          return;
+        }
+        applyTracks(participant);
       });
-      call.on('participant-updated', ({ participant }) => applyTracks(participant));
+      call.on('participant-updated', ({ participant }) => {
+        if (participant?.local) {
+          const micOn = participant.audio === true;
+          setMicEnabled(micOn);
+          if (micOn) setMicError(null);
+          return;
+        }
+        applyTracks(participant);
+      });
       call.on('track-started', ({ participant, track }) => {
         if (participant?.local) return;
         if (track.kind === 'video' && videoRef.current) {
@@ -104,7 +129,14 @@ function TavusAvatar({
         if (type === 'conversation.utterance' && data?.properties) {
           const role = data.properties.role;
           const text = data.properties.speech || data.properties.text || '';
-          console.log(`[Tavus] utterance (${role}):`, text.slice(0, 120));
+          const isDone = data.properties.done !== false; // Only process complete utterances
+          console.log(`[Tavus] utterance (${role}, done=${isDone}):`, text.slice(0, 120));
+
+          // When user finishes speaking, route to backend for analysis
+          if (role === 'user' && text.trim() && isDone && onUserUtteranceRef.current) {
+            console.log('[Tavus] User finished speaking - routing to backend:', text.slice(0, 80));
+            onUserUtteranceRef.current(text);
+          }
         }
 
         if (type === 'conversation.ended') {
@@ -128,13 +160,17 @@ function TavusAvatar({
     ensureConversation(conversationId);
 
     joinConversation(conversationUrl, conversationId, Daily)
-      .then((call) => {
+      .then(async (call) => {
         if (cancelled) return;
         ensureConversation(conversationId);
         bindCall(call, conversationId);
         callRef.current = call;
         bindOngoingListeners(call);
         console.log('[Tavus] Joined meeting');
+        const localParticipant = call.participants()?.local;
+        setMicEnabled(localParticipant?.audio === true);
+        setMicError(null);
+
         setStatus('live');
         Object.values(call.participants()).forEach(applyTracks);
 
@@ -153,11 +189,52 @@ function TavusAvatar({
 
     return () => {
       cancelled = true;
+      if (videoRef.current) videoRef.current.srcObject = null;
+      if (audioRef.current) audioRef.current.srcObject = null;
+      leaveConversation(Daily).catch(() => {});
     };
   }, [conversationUrl, conversationId]);
 
   function unlockAudio() {
     audioRef.current?.play().then(() => setAudioLocked(false)).catch(() => {});
+  }
+
+  async function enableMicrophone() {
+    const call = callRef.current;
+    if (!call) return;
+
+    try {
+      setMicError(null);
+
+      // Ask browser permission via explicit user gesture.
+      if (navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((t) => t.stop());
+      }
+
+      // Prefer Daily local audio toggle first.
+      // If Daily has not started the local audio device yet, fall back to startCamera.
+      try {
+        await call.setLocalAudio(true);
+      } catch {
+        await call.startCamera({ audioSource: true, videoSource: false });
+        await call.setLocalAudio(true);
+      }
+
+      const localParticipant = call.participants()?.local;
+      const micOn = localParticipant?.audio === true;
+      setMicEnabled(micOn);
+      if (micOn) {
+        setMicError(null);
+      } else {
+        setMicError('Microphone is allowed, but audio is still off in call. Click Enable Mic once more.');
+      }
+      console.log('[Tavus] Microphone manually enabled:', localParticipant?.audio);
+    } catch (err) {
+      console.error('[Tavus] Failed to enable microphone:', err);
+      setMicEnabled(false);
+      setMicError('Microphone permission is blocked. Allow mic in browser site settings, then click Enable Mic again.');
+    }
   }
 
   const isLive = status === 'live';
@@ -169,7 +246,7 @@ function TavusAvatar({
           {status === 'joining' ? (
             <>
               <Loader className="animate-spin" style={{ width: 32, height: 32 }} />
-              <p style={{ fontSize: '11px' }}>Connecting to Maya...</p>
+              <p style={{ fontSize: '11px' }}>Connecting to Bealls Analyst...</p>
             </>
           ) : (
             <>
@@ -177,7 +254,7 @@ function TavusAvatar({
               <p style={{ fontSize: '11px' }}>
                 {status === 'error'
                   ? (errorDetail || 'Connection failed')
-                  : 'Click "Start Maya" below'}
+                  : 'Click "Start Analyst" below'}
               </p>
             </>
           )}
@@ -208,11 +285,80 @@ function TavusAvatar({
         </button>
       )}
 
+      {/* Microphone status indicator */}
+      {isLive && !micEnabled && (
+        <button
+          type="button"
+          onClick={enableMicrophone}
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            background: 'rgba(220, 53, 69, 0.9)',
+            border: 'none',
+            borderRadius: 4,
+            padding: '4px 8px',
+            color: 'white',
+            fontSize: 10,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            zIndex: 10,
+          }}
+        >
+          <MicOff style={{ width: 12, height: 12 }} />
+          Enable Mic
+        </button>
+      )}
+
+      {isLive && micError && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 40,
+            right: 8,
+            maxWidth: 210,
+            background: 'rgba(220, 53, 69, 0.92)',
+            borderRadius: 4,
+            padding: '6px 8px',
+            color: 'white',
+            fontSize: 10,
+            zIndex: 10,
+            lineHeight: 1.35,
+          }}
+        >
+          {micError}
+        </div>
+      )}
+
+      {isLive && micEnabled && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            background: 'rgba(40, 167, 69, 0.9)',
+            borderRadius: 4,
+            padding: '4px 8px',
+            color: 'white',
+            fontSize: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            zIndex: 10,
+          }}
+        >
+          <Mic style={{ width: 12, height: 12 }} />
+          Mic ON
+        </div>
+      )}
+
       <div className="avatar-connection-badge">
         {isLive ? (
           <>
-            <Wifi style={{ width: 12, height: 12, color: '#34c97a' }} />
-            <span style={{ fontSize: 9, fontFamily: 'monospace', color: '#34c97a' }}>LIVE</span>
+            <Wifi style={{ width: 12, height: 12, color: 'var(--green)' }} />
+            <span style={{ fontSize: 9, fontFamily: 'monospace', color: 'var(--green)' }}>LIVE</span>
           </>
         ) : (
           <>
@@ -226,8 +372,10 @@ function TavusAvatar({
 
       {isLive && (
         <div className="avatar-status-bar">
-          <div className="avatar-name">Maya – AI Analyst</div>
-          <div className="avatar-role">Sales Command Center · Bealls</div>
+          <div className="avatar-name">Bealls Analyst</div>
+          <div className="avatar-role">
+            {replicaLabel ? `${replicaLabel} · ` : ''}Sales Command Center
+          </div>
           <div className="avatar-audio">
             {[...Array(7)].map((_, i) => (
               <div key={i} className="audio-bar" />

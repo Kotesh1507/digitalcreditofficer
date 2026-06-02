@@ -1,6 +1,6 @@
 /**
  * Tavus CVI + Daily.co — echo-first (Digital Credit Officer pattern).
- * All demo speech uses conversation.echo; respond kept for optional use only.
+ * Always creates a fresh Daily call object (never reuse getCallInstance — stale Quadrant video).
  */
 
 let callObject = null;
@@ -14,6 +14,30 @@ function buildInteraction(eventType, properties = {}) {
     conversation_id: conversationId,
     ...(Object.keys(properties).length ? { properties } : {}),
   };
+}
+
+/** Tear down every Daily singleton so the next join cannot show a previous replica. */
+async function destroyAllDailyCalls(Daily) {
+  const instances = [];
+  const singleton = Daily.getCallInstance?.();
+  if (singleton) instances.push(singleton);
+  if (callObject && !instances.includes(callObject)) instances.push(callObject);
+
+  for (const call of instances) {
+    try {
+      const state = call.meetingState?.();
+      if (state === 'joined-meeting' || state === 'joining-meeting') {
+        await call.leave();
+      }
+      call.destroy();
+    } catch (err) {
+      console.warn('[Tavus] destroy call:', err);
+    }
+  }
+
+  callObject = null;
+  conversationId = null;
+  conversationUrl = null;
 }
 
 export function bindCall(call, convId) {
@@ -84,46 +108,49 @@ export function sendInterruptMessage() {
   }
 }
 
-/** User question → respond (Tavus app). Backend verdict → echo (exact script). */
-export function speakUserQuery(query) {
-  return sendRespondMessage(query);
-}
-
 export function speakVerdict(verdict) {
   if (!verdict?.trim()) return false;
-  if (sendEchoMessage(verdict)) return true;
-  return sendRespondMessage(verdict);
+  return sendEchoMessage(verdict);
 }
 
-export function speakText(text, { mode = 'respond' } = {}) {
+export function speakText(text, { mode = 'echo' } = {}) {
   if (!text?.trim()) return false;
-  if (mode === 'echo') return sendEchoMessage(text) || sendRespondMessage(text);
-  return sendRespondMessage(text) || sendEchoMessage(text);
+  if (mode === 'echo') return sendEchoMessage(text);
+  return sendRespondMessage(text);
 }
 
-export function joinConversation(url, convId, Daily) {
+export async function joinConversation(url, convId, Daily) {
   if (!url || !convId) {
-    return Promise.reject(new Error('conversation URL and ID required'));
+    throw new Error('conversation URL and ID required');
   }
 
-  if (!callObject) {
-    callObject = Daily.getCallInstance() || Daily.createCallObject({
-      subscribeToTracksAutomatically: true,
-      dailyConfig: { experimentalChromeVideoMuteLightOff: true },
-    });
+  const sameRoom =
+    conversationUrl === url &&
+    conversationId === convId &&
+    callObject?.meetingState?.() === 'joined-meeting';
+
+  if (sameRoom) {
+    console.log('[Tavus] Already in room', convId);
+    return callObject;
   }
+
+  console.log('[Tavus] Joining new room', { convId, url: url.slice(0, 60) + '...' });
+  await destroyAllDailyCalls(Daily);
+
+  callObject = Daily.createCallObject({
+    subscribeToTracksAutomatically: true,
+    dailyConfig: { experimentalChromeVideoMuteLightOff: true },
+  });
 
   conversationUrl = url;
   conversationId = convId;
 
-  const state = callObject.meetingState();
-  if (state === 'joined-meeting') return Promise.resolve(callObject);
-  if (state === 'joining-meeting') return waitForJoined(callObject);
-
   return new Promise((resolve, reject) => {
-    const onJoined = () => {
+    const onJoined = async () => {
       callObject.off('joined-meeting', onJoined);
       callObject.off('error', onError);
+      console.log('[Tavus] joined-meeting', convId);
+
       resolve(callObject);
     };
     const onError = (ev) => {
@@ -133,40 +160,27 @@ export function joinConversation(url, convId, Daily) {
     };
     callObject.on('joined-meeting', onJoined);
     callObject.on('error', onError);
+    // Keep audio off until user explicitly grants/enables mic.
     callObject.join({ url, startVideoOff: true, startAudioOff: true }).catch(reject);
   });
 }
 
-function waitForJoined(call) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('Join timeout')), 45000);
-    const onJoined = () => {
-      clearTimeout(timer);
-      call.off('error', onError);
-      resolve(call);
-    };
-    const onError = (ev) => {
-      clearTimeout(timer);
-      call.off('joined-meeting', onJoined);
-      reject(ev?.error || ev);
-    };
-    call.on('joined-meeting', onJoined);
-    call.on('error', onError);
-  });
-}
-
-export async function leaveConversation() {
-  const call = callObject;
-  conversationId = null;
-  conversationUrl = null;
-  callObject = null;
-  if (!call) return;
-  try {
-    if (['joined-meeting', 'joining-meeting'].includes(call.meetingState())) {
-      await call.leave();
+export async function leaveConversation(Daily) {
+  if (Daily) {
+    await destroyAllDailyCalls(Daily);
+  } else {
+    const call = callObject;
+    callObject = null;
+    conversationId = null;
+    conversationUrl = null;
+    if (!call) return;
+    try {
+      if (['joined-meeting', 'joining-meeting'].includes(call.meetingState())) {
+        await call.leave();
+      }
+      call.destroy();
+    } catch {
+      /* ignore */
     }
-    call.destroy();
-  } catch {
-    /* ignore */
   }
 }

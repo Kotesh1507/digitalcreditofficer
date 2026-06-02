@@ -25,8 +25,25 @@ CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 TAVUS_API_KEY = os.getenv('TAVUS_API_KEY')
-TAVUS_PERSONA_ID = os.getenv('TAVUS_PERSONA_ID')
-TAVUS_REPLICA_ID = os.getenv('TAVUS_REPLICA_ID')
+
+# Multi-agent Tavus configuration
+TAVUS_AGENTS = {
+    'diagnostics': {
+        'persona_id': os.getenv('TAVUS_DIAGNOSTICS_PERSONA_ID'),
+        'replica_id': os.getenv('TAVUS_DIAGNOSTICS_REPLICA_ID'),
+        'name': 'Diagnostics Analyst',
+    },
+    'forecast': {
+        'persona_id': os.getenv('TAVUS_FORECAST_PERSONA_ID'),
+        'replica_id': os.getenv('TAVUS_FORECAST_REPLICA_ID'),
+        'name': 'Forecast Analyst',
+    },
+    'store_comparison': {
+        'persona_id': os.getenv('TAVUS_COMPARISON_PERSONA_ID'),
+        'replica_id': os.getenv('TAVUS_COMPARISON_REPLICA_ID'),
+        'name': 'Store Comparison Analyst',
+    },
+}
 
 sessions = {}
 
@@ -87,39 +104,6 @@ def get_agents():
 
 # === Tavus Integration ===
 
-def build_tavus_context():
-    """Build conversational context for Maya AI Analyst"""
-    return """You are Maya, a senior retail analyst at the Bealls Sales Command Center.
-
-ABOUT BEALLS:
-- 500-store off-price retail chain
-- F64 Fabric analytics capacity
-- Categories: Apparel, Footwear, Home, Kids, Accessories, Beauty, Jewelry, Outdoor
-
-YOUR ROLE:
-You analyze store performance, create forecasts, and compare stores against their peers.
-When the analysis agent sends you narration messages, speak each finding naturally as your own analysis.
-Do not say "I was told" or "the system says" — sound like you have done this a thousand times.
-
-THREE PERSONA MOMENTS YOU SUPPORT:
-1. Store Manager asks "Why is my store down?" — You decompose variance into traffic, conversion, basket, and mix.
-2. Merchandiser asks for a 12-week forecast — You provide a band with drivers and what-if scenarios.
-3. Regional VP asks why a store lags its cluster — You provide named peer context and gap decomposition.
-
-SAMPLE DATA FOR DEMO:
-Store 0214: -8.3% comp, traffic down 12%, Apparel worst category at -14%
-Store 0142: -9.1% comp, trails Cluster 7 median by 9.4pp
-Store 0318: +5.2% comp, top performer in Cluster 7
-Apparel forecast: $4.2M-$4.8M over 12 weeks, Promo W6 adds +$340K
-
-BEHAVIOR:
-- When the user types a question (conversation.respond), answer immediately in 1-3 sentences
-- When the app sends exact verdict text (conversation.echo), speak it clearly once
-- Always reference specific numbers
-- Suggest actionable drill-downs
-- Be confident and direct — you are a seasoned analyst"""
-
-
 def list_active_tavus_conversations():
     """List active Tavus conversations for this API key."""
     if not TAVUS_API_KEY:
@@ -154,25 +138,107 @@ def end_all_active_tavus_conversations():
     return ended
 
 
-def create_tavus_conversation(retry_after_cleanup=True):
-    """Create a new Tavus CVI conversation with conversational context."""
-    print(f"[Tavus] create_tavus_conversation called")
-    print(f"[Tavus] API_KEY present: {bool(TAVUS_API_KEY)}, PERSONA_ID: {TAVUS_PERSONA_ID}, REPLICA_ID: {TAVUS_REPLICA_ID}")
+def get_agent_context(agent_type):
+    """Get conversational context for each agent persona."""
+    base_data = """
+BEALLS RETAIL DATA (use these numbers in your responses):
+- 500 stores across Southeast, Southwest, Central, Northeast, West regions
+- 8 categories: Apparel, Footwear, Home, Kids, Accessories, Beauty, Jewelry, Outdoor
+- Store 100: +2.5% comp, strong performer, Kids +6.9%, Apparel +2.0%
+- Store 101: -3.2% comp, traffic down 8%, Footwear struggling at -5.1%
+- Store 102: -7.8% comp, conversion issue, Apparel down 12%
+- Apparel forecast: $4.2M-$4.8M over 12 weeks, Promo W6 adds +$340K
+- Cluster 7 median comp: +0.3%, top performer Store 318 at +5.2%
+"""
 
-    if not TAVUS_API_KEY or not TAVUS_PERSONA_ID:
-        return None, None, "Tavus API key or persona ID not configured"
+    contexts = {
+        'diagnostics': f"""You are the Diagnostics Analyst for Bealls Sales Command Center.
+You help store managers understand WHY their stores are underperforming.
+
+{base_data}
+
+YOUR EXPERTISE:
+- Variance decomposition: Traffic, Conversion, Basket, Mix/UPT
+- Root cause analysis for sales drops
+- Category-level diagnostics
+- Calendar and seasonality effects
+
+CONVERSATION STYLE:
+- Be warm, conversational, and confident
+- Always cite specific numbers from the data
+- When user asks "why is my store down?", decompose the variance
+- Suggest actionable drill-downs
+- Keep responses concise (2-3 sentences max)
+
+When you receive a conversation.echo message, speak that text verbatim - it contains detailed analysis.""",
+
+        'forecast': f"""You are the Forecast Analyst for Bealls Sales Command Center.
+You help merchandisers understand future sales projections and demand drivers.
+
+{base_data}
+
+YOUR EXPERTISE:
+- 12-week sales forecasting with confidence bands
+- Seasonal patterns and trend analysis
+- Promo impact modeling
+- What-if scenario analysis
+
+CONVERSATION STYLE:
+- Be warm, conversational, and confident
+- Always cite specific forecast numbers
+- Explain drivers: "Promo W6 adds $340K, seasonal tail-off W9-11 pulls back $210K"
+- Discuss confidence levels and risks
+- Keep responses concise (2-3 sentences max)
+
+When you receive a conversation.echo message, speak that text verbatim - it contains detailed analysis.""",
+
+        'store_comparison': f"""You are the Store Comparison Analyst for Bealls Sales Command Center.
+You help regional VPs benchmark stores against their peer clusters.
+
+{base_data}
+
+YOUR EXPERTISE:
+- Peer cluster benchmarking
+- Identifying performance gaps vs cluster median
+- Best practice sharing from top performers
+- Regional and demographic context
+
+CONVERSATION STYLE:
+- Be warm, conversational, and confident
+- Always cite specific store numbers and rankings
+- Compare to cluster median and top performers
+- Suggest what lagging stores can learn from leaders
+- Keep responses concise (2-3 sentences max)
+
+When you receive a conversation.echo message, speak that text verbatim - it contains detailed analysis.""",
+    }
+    return contexts.get(agent_type, contexts['diagnostics'])
+
+
+def create_tavus_conversation(agent_type='diagnostics', retry_after_cleanup=True):
+    """Create a new Tavus CVI conversation for a specific agent type."""
+    agent_config = TAVUS_AGENTS.get(agent_type, TAVUS_AGENTS['diagnostics'])
+    persona_id = agent_config['persona_id']
+    replica_id = agent_config['replica_id']
+    agent_name = agent_config['name']
+
+    print(f"[Tavus] create_tavus_conversation called for agent: {agent_type}")
+    print(f"[Tavus] API_KEY present: {bool(TAVUS_API_KEY)}, PERSONA_ID: {persona_id}, REPLICA_ID: {replica_id}")
+
+    if not TAVUS_API_KEY or not persona_id:
+        return None, None, f"Tavus API key or persona ID not configured for {agent_type}", None, None
 
     body = {
-        "persona_id": TAVUS_PERSONA_ID,
-        "conversational_context": build_tavus_context(),
+        "persona_id": persona_id,
+        "conversational_context": get_agent_context(agent_type),
         "properties": {
             "max_call_duration": 1800,
             "participant_left_timeout": 600,
             "enable_recording": False,
         },
     }
-    if TAVUS_REPLICA_ID:
-        body["replica_id"] = TAVUS_REPLICA_ID
+    if replica_id:
+        body["replica_id"] = replica_id
 
     try:
         res = requests.post(
@@ -190,16 +256,17 @@ def create_tavus_conversation(retry_after_cleanup=True):
             if "maximum concurrent" in msg.lower() or "concurrent conversations" in msg.lower():
                 print("[Tavus] Concurrent limit hit — ending stale active conversations...")
                 end_all_active_tavus_conversations()
-                return create_tavus_conversation(retry_after_cleanup=False)
+                return create_tavus_conversation(agent_type, retry_after_cleanup=False)
 
         res.raise_for_status()
         data = res.json()
         cid = data.get("conversation_id")
         curl = data.get("conversation_url")
         if not cid or not curl:
-            return None, None, "Tavus returned an invalid conversation payload"
-        print(f"[Tavus] Conversation created: {cid}")
-        return cid, curl, None
+            return None, None, "Tavus returned an invalid conversation payload", None, None
+        conv_replica = data.get("replica_id") or replica_id
+        print(f"[Tavus] Conversation created: {cid}, replica_id={conv_replica}, agent={agent_type}")
+        return cid, curl, None, conv_replica, agent_name
     except requests.RequestException as e:
         detail = str(e)
         if getattr(e, "response", None) is not None:
@@ -208,7 +275,7 @@ def create_tavus_conversation(retry_after_cleanup=True):
             except Exception:
                 detail = e.response.text or detail
         print(f"[Tavus] Create failed: {detail}")
-        return None, None, detail
+        return None, None, detail, None, None
 
 
 def end_tavus_conversation(conversation_id):
@@ -243,14 +310,34 @@ def index():
     return send_from_directory(app.static_folder, 'index.html')
 
 
+def get_replica_label(replica_id: str) -> str:
+    """Resolve replica display name for UI verification."""
+    if not replica_id or not TAVUS_API_KEY:
+        return replica_id or ""
+    try:
+        res = requests.get(
+            f"https://tavusapi.com/v2/replicas/{replica_id}",
+            headers={"x-api-key": TAVUS_API_KEY},
+            timeout=15,
+        )
+        if res.ok:
+            data = res.json()
+            return data.get("replica_name") or data.get("name") or replica_id
+    except requests.RequestException:
+        pass
+    return replica_id
+
+
 @app.route('/health')
 def health():
     """Health check endpoint"""
+    diagnostics_config = TAVUS_AGENTS.get('diagnostics', {})
     return jsonify({
         "status": "healthy",
         "service": "Bealls Sales Command Center",
         "version": "1.0.0",
-        "tavus_configured": bool(TAVUS_API_KEY and TAVUS_PERSONA_ID),
+        "tavus_configured": bool(TAVUS_API_KEY and diagnostics_config.get('persona_id')),
+        "tavus_agents": list(TAVUS_AGENTS.keys()),
         "gemini_configured": bool(os.getenv('GEMINI_API_KEY')),
         "s3_configured": bool(os.getenv('AWS_ACCESS_KEY_ID')),
         "active_sessions": len(sessions),
@@ -308,6 +395,17 @@ def get_suggested_prompts():
 
     prompts = orchestrator.get_suggested_prompts(persona)
     return jsonify({"prompts": prompts})
+
+
+@app.route('/api/opening-briefing', methods=['GET'])
+def opening_briefing():
+    """Landing/opening page KPI snapshot (pre-conversation briefing)."""
+    agent_system = get_agents()
+    sales = agent_system['mcp']['sales']
+
+    week_range = request.args.get('week_range', 'last_12w')
+    kpis_payload = sales.get_opening_briefing_kpis(week_range=week_range)
+    return jsonify(kpis_payload)
 
 
 @app.route('/api/store/<store_id>/diagnostics', methods=['GET'])
@@ -376,17 +474,37 @@ def get_store_comparison(store_id):
 
 @app.route('/api/tavus/init', methods=['POST'])
 def init_tavus_rest():
-    """Initialize Tavus conversation via REST"""
-    conversation_id, conversation_url, error = create_tavus_conversation()
+    """Initialize Tavus conversation via REST for a specific agent type"""
+    data = request.json or {}
+    agent_type = data.get('agent_type', 'diagnostics')
+
+    # Validate agent type
+    if agent_type not in TAVUS_AGENTS:
+        agent_type = 'diagnostics'
+
+    end_all_active_tavus_conversations()
+    conversation_id, conversation_url, error, conv_replica, agent_name = create_tavus_conversation(agent_type)
+
     if error or not conversation_id:
         return jsonify({
             "error": error or "No conversation returned from Tavus API",
             "conversationId": None,
             "conversationUrl": None,
         }), 503
+
+    agent_config = TAVUS_AGENTS[agent_type]
+    replica_id = conv_replica or agent_config['replica_id'] or ""
+    replica_name = get_replica_label(replica_id)
+
+    print(f"[init_tavus] agent={agent_type} persona={agent_config['persona_id']} replica={replica_id} ({replica_name})")
     return jsonify({
         "conversationId": conversation_id,
         "conversationUrl": conversation_url,
+        "personaId": agent_config['persona_id'],
+        "replicaId": replica_id,
+        "replicaName": replica_name,
+        "agentType": agent_type,
+        "agentName": agent_name,
     })
 
 
@@ -401,6 +519,51 @@ def end_tavus_rest():
 
     end_tavus_conversation(conversation_id)
     return jsonify({"status": "ended"})
+
+
+@app.route('/api/tavus/switch', methods=['POST'])
+def switch_tavus_agent():
+    """Switch to a different Tavus agent - ends current and starts new"""
+    data = request.json or {}
+    current_conversation_id = data.get('current_conversation_id')
+    new_agent_type = data.get('agent_type', 'diagnostics')
+
+    # Validate agent type
+    if new_agent_type not in TAVUS_AGENTS:
+        return jsonify({"error": f"Invalid agent type: {new_agent_type}"}), 400
+
+    # End current conversation if exists
+    if current_conversation_id:
+        try:
+            end_tavus_conversation(current_conversation_id)
+            print(f"[switch_tavus] Ended conversation: {current_conversation_id}")
+        except Exception as e:
+            print(f"[switch_tavus] Failed to end {current_conversation_id}: {e}")
+
+    # Create new conversation for the new agent
+    conversation_id, conversation_url, error, conv_replica, agent_name = create_tavus_conversation(new_agent_type)
+
+    if error or not conversation_id:
+        return jsonify({
+            "error": error or "Failed to create new conversation",
+            "conversationId": None,
+            "conversationUrl": None,
+        }), 503
+
+    agent_config = TAVUS_AGENTS[new_agent_type]
+    replica_id = conv_replica or agent_config['replica_id'] or ""
+    replica_name = get_replica_label(replica_id)
+
+    print(f"[switch_tavus] Switched to agent={new_agent_type} replica={replica_id} ({replica_name})")
+    return jsonify({
+        "conversationId": conversation_id,
+        "conversationUrl": conversation_url,
+        "personaId": agent_config['persona_id'],
+        "replicaId": replica_id,
+        "replicaName": replica_name,
+        "agentType": new_agent_type,
+        "agentName": agent_name,
+    })
 
 
 @app.route('/api/mcp/sales/<tool_name>', methods=['POST'])
@@ -474,7 +637,7 @@ def handle_init_tavus(data):
     def _open_tavus():
         try:
             print(f"[init_tavus] Calling create_tavus_conversation...")
-            conversation_id, conversation_url, error = create_tavus_conversation()
+            conversation_id, conversation_url, error, _conv_replica = create_tavus_conversation()
             print(f"[init_tavus] Result: id={conversation_id}, url={conversation_url}, error={error}")
             if conversation_id:
                 sessions[session_id]['tavus_conversation_id'] = conversation_id
@@ -784,8 +947,20 @@ def reset_all_tavus():
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5002))
     print(f"Starting Bealls Sales Command Center on port {port}")
-    print(f"Tavus configured: {bool(TAVUS_API_KEY and TAVUS_PERSONA_ID)}")
+    print(f"Tavus API key configured: {bool(TAVUS_API_KEY)}")
+    print(f"Tavus agents configured: {list(TAVUS_AGENTS.keys())}")
+    for agent_type, config in TAVUS_AGENTS.items():
+        print(f"  - {agent_type}: persona={config['persona_id']}, replica={config['replica_id']}")
     print(f"Gemini configured: {bool(os.getenv('GEMINI_API_KEY'))}")
     print(f"S3 configured: {bool(os.getenv('AWS_ACCESS_KEY_ID'))}")
 
-    socketio.run(app, host='0.0.0.0', port=port, debug=True)
+    # use_reloader=False avoids WinError 10048 (port already in use) on Windows
+    debug = os.getenv('FLASK_DEBUG', '0').lower() in ('1', 'true', 'yes')
+    socketio.run(
+        app,
+        host='0.0.0.0',
+        port=port,
+        debug=debug,
+        use_reloader=False,
+        allow_unsafe_werkzeug=True,
+    )

@@ -35,7 +35,7 @@ export default function MayaQAPanel() {
     <div className="maya-qa-panel">
       <div className="maya-qa-header">
         <MessageSquare size={13} />
-        <span>Ask Maya</span>
+        <span>Ask Bealls Analyst</span>
         <span className="maya-qa-hint">Chips = scripted · Type below = pilot QR</span>
       </div>
 

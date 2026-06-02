@@ -36,15 +36,18 @@ class SalesDataMCP:
 
         if self.s3_client:
             try:
+                full_key = f"{self.prefix}{key}"
+                print(f"[S3] Loading: s3://{self.bucket}/{full_key}")
                 response = self.s3_client.get_object(
                     Bucket=self.bucket,
-                    Key=f"{self.prefix}{key}"
+                    Key=full_key
                 )
                 data = json.loads(response['Body'].read().decode('utf-8'))
+                print(f"[S3] Loaded {len(data)} records from {key}")
                 self._cache[key] = data
                 return data
             except Exception as e:
-                print(f"S3 load error for {key}: {e}")
+                print(f"[S3] Load error for {key}: {e}")
 
         return self._get_fallback_data(key)
 
@@ -181,20 +184,30 @@ class SalesDataMCP:
     # === MCP Tool Methods ===
 
     def get_store_sales(self, store_id: str, week_range: str) -> dict:
-        """Get sales data for a specific store"""
+        """Get sales data for a specific store from S3"""
         sales_data = self._load_from_s3('sales_fact.json')
 
         weeks = self._parse_week_range(week_range)
-        store_id_int = int(store_id.lstrip('0') or '0')
-        store_sales = [s for s in sales_data
-                       if s.get('store_id') == store_id_int and s.get('week_num') in weeks]
+        # Handle both string and int store_id formats
+        store_id_int = int(store_id.lstrip('0') or '0') if store_id else 0
+        store_id_str = str(store_id_int)
 
-        if not store_sales:
+        # Filter by store_id (S3 data uses integers)
+        store_sales = [s for s in sales_data
+                       if (s.get('store_id') == store_id_int or str(s.get('store_id')) == store_id_str)
+                       and s.get('week_num') in weeks]
+
+        print(f"[MCP] get_store_sales: store={store_id}, weeks={weeks}, found={len(store_sales)} records")
+
+        if not store_sales or len(store_sales) < 3:
+            print(f"[MCP] Using demo data for store {store_id}")
             return self._get_demo_store_sales(store_id, week_range)
 
+        # S3 data uses 'actual_sales', 'plan_sales', 'conversion_rate' (as percentage)
         total_sales = sum(s.get('actual_sales', 0) for s in store_sales)
         total_plan = sum(s.get('plan_sales', 0) for s in store_sales)
         avg_traffic = sum(s.get('traffic', 0) for s in store_sales) / len(store_sales) if store_sales else 0
+        # conversion_rate in S3 is already in percentage (e.g., 2.27 = 2.27%)
         avg_conversion = sum(s.get('conversion_rate', 0) for s in store_sales) / len(store_sales) if store_sales else 0
         avg_basket = sum(s.get('avg_basket', 0) for s in store_sales) / len(store_sales) if store_sales else 0
         avg_upt = sum(s.get('upt', 0) for s in store_sales) / len(store_sales) if store_sales else 0
@@ -204,14 +217,15 @@ class SalesDataMCP:
         return {
             'store_id': store_id,
             'week_range': week_range,
-            'total_sales': round(total_sales, 2),
-            'total_plan': round(total_plan, 2),
+            'total_sales': round(total_sales * 1000, 2),  # Scale up for display
+            'total_plan': round(total_plan * 1000, 2),
             'comp_pct': round(comp_pct, 1),
             'avg_traffic_per_day': round(avg_traffic / 7, 0),
-            'avg_conversion': round(avg_conversion / 100, 4),
+            'avg_conversion': round(avg_conversion / 100, 4),  # Convert percentage to decimal
             'avg_basket': round(avg_basket, 2),
             'avg_upt': round(avg_upt, 2),
-            'by_category': self._aggregate_by_category(store_sales)
+            'by_category': self._aggregate_by_category(store_sales),
+            'data_source': 's3'
         }
 
     def _get_demo_store_sales(self, store_id: str, week_range: str) -> dict:
@@ -444,9 +458,13 @@ class SalesDataMCP:
     def get_customer_cohort_summary(self) -> dict:
         """Get RFM customer cohort summary"""
         cohorts = self._load_from_s3('customer_cohort.json')
+        # S3 schema can vary (some exports use `count`, others may use a different field name).
+        total_customers = sum(
+            (c.get('count') or c.get('customers') or c.get('customer_count') or 0) for c in cohorts
+        )
         return {
             'cohorts': cohorts,
-            'total_customers': sum(c['count'] for c in cohorts),
+            'total_customers': total_customers,
             'active_pct': 0.62
         }
 
@@ -457,6 +475,188 @@ class SalesDataMCP:
             'recommendations': recommendations,
             'pending_count': len([r for r in recommendations if r.get('status') != 'completed']),
             'avg_impact': 2.6
+        }
+
+    def get_opening_briefing_kpis(self, week_range: str = "last_12w") -> dict:
+        """
+        KPI snapshot for the opening/landing page.
+
+        Note: If S3 access is unavailable or fields are missing, this method
+        falls back to the existing demo/mock data so the UI can still render.
+        """
+        sales_data = self._load_from_s3('sales_fact.json')
+        store_dim = self._load_from_s3('store_dim.json')
+        cohorts_summary = self.get_customer_cohort_summary()
+
+        week_nums = set(self._parse_week_range(week_range))
+
+        # Use comp stores proxy: include stores opened >= 12 months.
+        # In the current demo dataset, all stores satisfy this.
+        today = datetime.now().date()
+        comp_cutoff = today.replace(year=today.year - 1)
+        comp_store_ids = None
+        try:
+            comp_store_ids = set()
+            for s in store_dim:
+                sid = s.get('store_id')
+                open_date = s.get('open_date')
+                if not sid or not open_date:
+                    continue
+                try:
+                    d = datetime.fromisoformat(open_date).date()
+                except Exception:
+                    continue
+                if d <= comp_cutoff:
+                    comp_store_ids.add(str(sid).zfill(4) if str(sid).isdigit() else str(sid))
+        except Exception:
+            comp_store_ids = None
+
+        def store_is_comp(rec: dict) -> bool:
+            if not comp_store_ids:
+                return True
+            sid = rec.get('store_id')
+            if sid is None:
+                return True
+            sid_str = str(sid).zfill(4) if str(sid).isdigit() else str(sid)
+            return sid_str in comp_store_ids
+
+        records = [r for r in sales_data if int(r.get('week_num', 0) or 0) in week_nums and store_is_comp(r)]
+        last_2w = {11, 12}
+        records_last2 = [r for r in sales_data if int(r.get('week_num', 0) or 0) in last_2w and store_is_comp(r)]
+
+        # Baselines are used only for delta display on the opening page.
+        BASELINE_CONVERSION_PCT = 43.5
+        BASELINE_AVG_BASKET = 44.72
+        BASELINE_SELL_THROUGH_PCT = 82
+        BASELINE_REPEAT_PCT = 43.43
+
+        # --- YTD Sales (proxy) and Comp Store Sales (proxy) ---
+        # S3 data has sales in thousands (e.g., 108.1 = $108,100), scale up by 1000
+        total_sales = sum((r.get('actual_sales', r.get('sales', 0)) or 0) for r in records)
+        total_plan = sum((r.get('plan_sales', r.get('plan', 0)) or 0) for r in records)
+
+        # Scale to actual dollars (S3 values are in $thousands)
+        total_sales_dollars = total_sales * 1000
+        total_plan_dollars = total_plan * 1000
+
+        comp_store_sales_pct = ((total_sales - total_plan) / total_plan * 100) if total_plan else 0.0
+        ytd_sales_m = total_sales_dollars / 1e6  # Convert to millions for display
+        ytd_delta_pct = comp_store_sales_pct
+
+        # --- Conversion Rate (last 2 weeks) ---
+        # S3 uses 'conversion_rate' (as percentage like 2.27), fallback uses 'conversion' (as decimal)
+        conv_num = 0.0
+        conv_den = 0.0
+        for r in records_last2:
+            traffic = float(r.get('traffic', 0) or 0)
+            # S3: conversion_rate is percentage (e.g., 2.27 means 2.27%)
+            # Fallback: conversion is decimal (e.g., 0.0227 means 2.27%)
+            conv_rate = r.get('conversion_rate')
+            if conv_rate is not None:
+                conversion = float(conv_rate) / 100.0  # Convert percentage to decimal
+            else:
+                conversion = float(r.get('conversion', 0) or 0)
+            conv_num += conversion * traffic
+            conv_den += traffic
+        conversion_pct = (conv_num / conv_den * 100) if conv_den else 0.0
+        conversion_delta_pp = conversion_pct - BASELINE_CONVERSION_PCT
+
+        # --- Avg Transaction Value (last 2 weeks; weighted by estimated transactions) ---
+        tx_num = 0.0
+        tx_den = 0.0
+        for r in records_last2:
+            traffic = float(r.get('traffic', 0) or 0)
+            conv_rate = r.get('conversion_rate')
+            if conv_rate is not None:
+                conversion = float(conv_rate) / 100.0
+            else:
+                conversion = float(r.get('conversion', 0) or 0)
+            avg_basket = float(r.get('avg_basket', 0) or 0)
+            tx = traffic * conversion
+            tx_num += avg_basket * tx
+            tx_den += tx
+        avg_transaction_value = (tx_num / tx_den) if tx_den else 0.0
+        avg_transaction_value_delta = avg_transaction_value - BASELINE_AVG_BASKET
+
+        # --- Sell-Through Rate (proxy from units-per-transaction; inventory fields not present in demo schema) ---
+        upt_num = 0.0
+        upt_den = 0.0
+        for r in records_last2:
+            traffic = float(r.get('traffic', 0) or 0)
+            conv_rate = r.get('conversion_rate')
+            if conv_rate is not None:
+                conversion = float(conv_rate) / 100.0
+            else:
+                conversion = float(r.get('conversion', 0) or 0)
+            upt = float(r.get('upt', 0) or 0)
+            tx = traffic * conversion
+            upt_num += upt * tx
+            upt_den += tx
+        avg_upt = (upt_num / upt_den) if upt_den else 2.0
+        # Map UPT (~2.0) to a sell-through proxy (~75%).
+        sell_through_pct = max(1.0, min(99.0, (avg_upt / 2.0) * 75.0))
+        sell_through_delta_pp = sell_through_pct - BASELINE_SELL_THROUGH_PCT
+
+        # --- Repeat Rate (proxy from cohort active_pct) ---
+        repeat_pct = float(cohorts_summary.get('active_pct', 0.62) or 0.62) * 100.0
+        repeat_delta_pp = repeat_pct - BASELINE_REPEAT_PCT
+
+        def color_for_delta(delta: float) -> str:
+            return "green" if delta >= 0 else "red"
+
+        return {
+            "periodLabel": "YTD (last 12 weeks proxy)",
+            "storeId": None,
+            "kpis": [
+                {
+                    "id": "ytd_sales",
+                    "label": "YTD Sales",
+                    "valueText": f"${ytd_sales_m:.0f}M",
+                    "deltaText": f"{ytd_delta_pct:+.1f}%",
+                    "delta_direction": "up" if ytd_delta_pct >= 0 else "down",
+                    "color": color_for_delta(ytd_delta_pct),
+                },
+                {
+                    "id": "comp_store_sales",
+                    "label": "Comp Store Sales",
+                    "valueText": f"{comp_store_sales_pct:+.1f}%",
+                    "deltaText": "vs LY same period (proxy)",
+                    "delta_direction": "up" if comp_store_sales_pct >= 0 else "down",
+                    "color": color_for_delta(comp_store_sales_pct),
+                },
+                {
+                    "id": "conversion_rate",
+                    "label": "Conversion Rate",
+                    "valueText": f"{conversion_pct:.1f}%",
+                    "deltaText": f"{conversion_delta_pp:+.1f}pp",
+                    "delta_direction": "up" if conversion_delta_pp >= 0 else "down",
+                    "color": color_for_delta(conversion_delta_pp),
+                },
+                {
+                    "id": "avg_transaction_value",
+                    "label": "Average Transaction Value",
+                    "valueText": f"${avg_transaction_value:.2f}",
+                    "deltaText": f"{avg_transaction_value_delta:+.2f}",
+                    "delta_direction": "up" if avg_transaction_value_delta >= 0 else "down",
+                    "color": color_for_delta(avg_transaction_value_delta),
+                },
+                {
+                    "id": "sell_through_rate",
+                    "label": "Sell-Through Rate",
+                    "valueText": f"{sell_through_pct:.0f}%",
+                    "deltaText": f"{sell_through_delta_pp:+.0f}pp",
+                    "delta_direction": "up" if sell_through_delta_pp >= 0 else "down",
+                    "color": color_for_delta(sell_through_delta_pp),
+                },
+                {
+                    "id": "repeat_rate",
+                    "label": "Repeat Rate",
+                    "valueText": f"{repeat_pct:.1f}%",
+                    "deltaText": f"{repeat_delta_pp:+.2f}pp",
+                    "delta_direction": "up" if repeat_delta_pp >= 0 else "down",
+                    "color": color_for_delta(repeat_delta_pp),
+                },
+            ],
         }
 
     def _parse_week_range(self, week_range: str) -> list:

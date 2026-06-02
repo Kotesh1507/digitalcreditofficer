@@ -1,12 +1,13 @@
 import React from 'react';
 import { BarChart3, TrendingUp, Store, Stethoscope, LineChart, Users } from 'lucide-react';
 import { useStore } from '../store/index.js';
+import OpeningBriefing from './OpeningBriefing';
 
 const PERSONA_CARDS = [
   {
     id: 'store_manager',
     name: 'Store Manager',
-    color: '#f05252',
+    color: '#c97a7a',
     icon: Stethoscope,
     tagline: 'Diagnose performance issues',
     sample: '"Why is my store down this week?"',
@@ -15,7 +16,7 @@ const PERSONA_CARDS = [
   {
     id: 'merchandiser',
     name: 'Merchandiser',
-    color: '#4f7ef8',
+    color: '#7a9de0',
     icon: LineChart,
     tagline: 'Forecast & plan ahead',
     sample: '"What does next quarter look like for Apparel?"',
@@ -24,7 +25,7 @@ const PERSONA_CARDS = [
   {
     id: 'regional_vp',
     name: 'Regional VP',
-    color: '#22d3b8',
+    color: '#52b8a8',
     icon: Users,
     tagline: 'Compare stores & clusters',
     sample: '"How does Store 0142 stack up against its peers?"',
@@ -32,7 +33,7 @@ const PERSONA_CARDS = [
   },
 ];
 
-export default function IdleScreen() {
+export default function IdleScreen({ onDraftPrompt }) {
   const askQA = useStore((s) => s.askQA);
   const sendQuery = useStore((s) => s.sendQuery);
   const suggestedPrompts = useStore((s) => s.suggestedPrompts);
@@ -47,6 +48,9 @@ export default function IdleScreen() {
   return (
     <div className="idle-screen">
       <div className="idle-content">
+        {/* Opening KPI brief (before live conversation) */}
+        <OpeningBriefing onDraftPrompt={onDraftPrompt} />
+
         {/* Hero */}
         <div className="idle-hero">
           <div className="idle-logo">
@@ -54,7 +58,7 @@ export default function IdleScreen() {
           </div>
           <h1>Bealls Sales Command Center</h1>
           <p>
-            Ask Maya about store performance, forecasts, or peer comparisons.
+            Ask your Bealls analyst about store performance, forecasts, or peer comparisons.
             <br />
             Select a persona and ask a question to get started.
           </p>
@@ -110,7 +114,7 @@ export default function IdleScreen() {
 
         {/* Hint */}
         <div className="idle-hint">
-          Start Maya above, then ask a question
+          Start Analyst above, then ask a question
         </div>
       </div>
     </div>

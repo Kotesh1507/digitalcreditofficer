@@ -1,5 +1,5 @@
 """
-Patch Maya Tavus persona so she responds to conversation.respond (typed queries).
+Patch Bealls Analyst Tavus persona (p56515f51bee) so she responds to conversation.respond (typed queries).
 
 Per Tavus docs:
 - conversation.respond = chat-style text input (replica must answer)

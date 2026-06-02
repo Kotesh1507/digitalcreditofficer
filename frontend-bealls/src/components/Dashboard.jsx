@@ -168,14 +168,14 @@ export default function Dashboard() {
                   width={item.width}
                   height={Math.abs(item.val) * 5}
                   rx="3"
-                  fill={item.val > 0 ? '#34c97a' : '#f05252'}
+                  fill={item.val > 0 ? 'var(--green-muted)' : 'var(--red-muted)'}
                   opacity={i === tiles.waterfall.length - 1 ? 1 : 0.7}
                 />
                 <text
                   x="10"
                   y="15"
                   fontSize="9"
-                  fill={item.val > 0 ? '#34c97a' : '#f05252'}
+                  fill={item.val > 0 ? 'var(--green-muted)' : 'var(--red-muted)'}
                 >
                   {item.val > 0 ? '+' : ''}
                   {item.val}pp

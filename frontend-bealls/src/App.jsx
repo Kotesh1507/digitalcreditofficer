@@ -16,19 +16,20 @@ import MayaQAPanel from './components/MayaQAPanel';
 import './index.css';
 import { API_BASE, DEFLECT_SCRIPT } from './config.js';
 
-const BACKEND_URL = API_BASE;
+const BACKEND_URL = API_BASE || window.location.origin;
 
 // Persist socket across React StrictMode remounts
 let sharedSocket = null;
 
 const PERSONAS = [
-  { id: 'store_manager', name: 'Store Manager', color: '#f05252' },
-  { id: 'merchandiser', name: 'Merchandiser', color: '#4f7ef8' },
-  { id: 'regional_vp', name: 'Regional VP', color: '#22d3b8' },
+  { id: 'store_manager', name: 'Store Manager', color: '#c97a7a' },
+  { id: 'merchandiser', name: 'Merchandiser', color: '#7a9de0' },
+  { id: 'regional_vp', name: 'Regional VP', color: '#52b8a8' },
 ];
 
 function App() {
   const [query, setQuery] = useState('');
+  const draftPrompt = useCallback((text) => setQuery(text), []);
   const [showPersonaMenu, setShowPersonaMenu] = useState(false);
   const [avatarStatus, setAvatarStatus] = useState('idle');
 
@@ -42,6 +43,11 @@ function App() {
   const tavusConversationId = useStore((s) => s.tavusConversationId);
   const tavusLoading = useStore((s) => s.tavusLoading);
   const tavusError = useStore((s) => s.tavusError);
+  const tavusReplicaLabel = useStore((s) => s.tavusReplicaLabel);
+  const tavusAgentType = useStore((s) => s.tavusAgentType);
+  const tavusAgentName = useStore((s) => s.tavusAgentName);
+  const tavusSwitching = useStore((s) => s.tavusSwitching);
+  const tavusIsSwitch = useStore((s) => s.tavusIsSwitch);
   const suggestedPrompts = useStore((s) => s.suggestedPrompts);
 
   // Store actions
@@ -153,23 +159,59 @@ function App() {
   // Handle call ready - greet user
   const bindCallFromStore = useStore((s) => s.bindCallFromStore);
 
+  // Clear switch flag after use
+  const clearSwitchFlag = useCallback(() => {
+    useStore.setState({ tavusIsSwitch: false });
+  }, []);
+
   const handleCallReady = useCallback((call) => {
-    console.log('[App] Call object ready');
+    console.log('[App] Call object ready, agent:', tavusAgentType, 'isSwitch:', tavusIsSwitch);
     setCallObject(call);
     bindCallFromStore(call);
 
+    // Skip greeting if this is a switch (avatar will speak the verdict instead)
+    if (tavusIsSwitch) {
+      console.log('[App] Skipping greeting - this is an agent switch');
+      clearSwitchFlag();
+      return;
+    }
+
+    // Agent-specific greetings for initial connection
+    const greetings = {
+      diagnostics: "Hi, I'm your Diagnostics Analyst. I help you understand why stores are underperforming. " +
+        "Ask me about traffic drops, conversion issues, or category performance — I'll break down exactly what's driving your variance.",
+      forecast: "Hello, I'm your Forecast Analyst. I specialize in projecting sales and identifying demand drivers. " +
+        "Ask me about upcoming trends, seasonal projections, or what-if scenarios for your categories.",
+      store_comparison: "Hi there, I'm your Store Comparison Analyst. I help you benchmark stores against their peers. " +
+        "Ask me how any store stacks up in its cluster, or why certain locations outperform others.",
+    };
+
+    const greeting = greetings[tavusAgentType] || greetings.diagnostics;
+
     setTimeout(() => {
-      addToSpeechQueue(
-        "Welcome to the Bealls Sales Command Center. I'm Maya, your AI analyst. " +
-        "Ask me why a store is down, what next quarter looks like, or how any store stacks up against its peers."
-      );
+      addToSpeechQueue(greeting);
     }, 2000);
-  }, [addToSpeechQueue, setCallObject, bindCallFromStore]);
+  }, [addToSpeechQueue, setCallObject, bindCallFromStore, tavusAgentType, tavusIsSwitch, clearSwitchFlag]);
 
   const handleSessionEnded = useCallback(() => {
     console.warn('[App] Tavus session ended — resetting');
     endTavus();
   }, [endTavus]);
+
+  // Handle user voice query from Tavus - route to backend for analysis
+  // IMPORTANT: Interrupt Tavus auto-response immediately, let our backend handle it
+  const sendInterrupt = useStore((s) => s.sendInterrupt);
+
+  const handleUserUtterance = useCallback((text) => {
+    if (!text?.trim()) return;
+    console.log('[App] User voice query received:', text.slice(0, 80));
+
+    // Immediately interrupt Tavus auto-response - we'll handle this ourselves
+    sendInterrupt();
+
+    // Route voice query to backend - it will return analysis with synced metrics
+    sendQuery(text.trim(), { fromVoice: false }); // fromVoice: false so we DO echo our response
+  }, [sendQuery, sendInterrupt]);
 
   // Handle submit
   const handleSubmit = (e) => {
@@ -247,39 +289,52 @@ function App() {
         <div className="left-panel">
           <div className="avatar-wrap">
             <TavusAvatar
+              key={tavusConversationId || 'idle'}
               conversationUrl={tavusUrl}
               conversationId={tavusConversationId}
+              replicaLabel={tavusReplicaLabel}
               onCallReady={handleCallReady}
               onSpeakingDone={onAvatarStoppedSpeaking}
               onStatusChange={setAvatarStatus}
               onSessionEnded={handleSessionEnded}
+              onUserUtterance={handleUserUtterance}
             />
           </div>
 
           {/* Tavus Controls */}
           <div className="tavus-controls">
             {tavusError && (
-              <p className="tavus-error" style={{ fontSize: 10, color: '#f05252', marginBottom: 6 }}>
+              <p className="tavus-error" style={{ fontSize: 10, color: 'var(--red)', marginBottom: 6 }}>
                 {tavusError}
+              </p>
+            )}
+            {tavusSwitching && (
+              <p style={{ fontSize: 10, color: 'var(--blue)', marginBottom: 6 }}>
+                Switching to {tavusAgentName || 'new agent'}...
+              </p>
+            )}
+            {tavusAgentName && avatarStatus === 'live' && (
+              <p style={{ fontSize: 10, color: 'var(--green)', marginBottom: 6 }}>
+                Active: {tavusAgentName}
               </p>
             )}
             {!tavusUrl ? (
               <button
                 className="tavus-btn active"
                 onClick={() => {
-                  console.log('[App] Start Maya clicked');
-                  initTavus();
+                  console.log('[App] Start Bealls Analyst clicked');
+                  initTavus('diagnostics');
                 }}
                 disabled={tavusLoading}
               >
-                {tavusLoading ? 'Starting...' : 'Start Maya'}
+                {tavusLoading ? 'Starting...' : 'Start Analyst'}
               </button>
             ) : avatarStatus !== 'live' ? (
               <button className="tavus-btn" disabled>
-                {avatarStatus === 'error' ? 'Connection failed' : 'Connecting to Maya...'}
+                {avatarStatus === 'error' ? 'Connection failed' : 'Connecting to analyst...'}
               </button>
             ) : (
-              <button className="tavus-btn end" onClick={endTavus}>
+              <button className="tavus-btn end" onClick={endTavus} disabled={tavusSwitching}>
                 End Session
               </button>
             )}
@@ -292,7 +347,7 @@ function App() {
         {/* Right area - Idle or Workspace */}
         <div className="main-area">
           {phase === PHASE.IDLE ? (
-            <IdleScreen />
+            <IdleScreen onDraftPrompt={draftPrompt} />
           ) : (
             <div className="workspace">
               {/* Center - Dashboard */}
@@ -313,7 +368,7 @@ function App() {
             <form className="chat-input" onSubmit={handleSubmit}>
               <input
                 type="text"
-                placeholder="Type a question (pilot QR)..."
+                placeholder="Ask the analyst anything (pilot QR)..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 disabled={loading}

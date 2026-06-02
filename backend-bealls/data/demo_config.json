@@ -113,9 +113,11 @@
     }
   ],
   "tavus_config": {
-    "persona_name": "Maya",
-    "persona_role": "AI Analyst",
-    "welcome_script": "Welcome to the Sales Command Center. I'm Maya, your AI analyst. Ask me why a store is down, what next quarter looks like, or how any store stacks up against its peers.",
+    "persona_id": "p56515f51bee",
+    "replica_id": "r3f427f43c9d",
+    "persona_name": "Bealls Analyst",
+    "persona_role": "Retail AI Analyst",
+    "welcome_script": "Welcome to the Bealls Sales Command Center. I'm your Bealls analyst. Ask me why a store is down, what next quarter looks like, or how any store stacks up against its peers.",
     "fallback_timeout_ms": 3000
   }
 }
