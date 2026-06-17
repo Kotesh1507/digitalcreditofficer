@@ -1,0 +1,111 @@
+{
+  "_extraction_metadata": {
+    "extracted_by": "Meridian DocIngest v2.4.1",
+    "extraction_timestamp": "2025-10-14T09:22:47Z",
+    "submission_id": "MCI-2025-OCT-004821",
+    "total_pages_processed": 34,
+    "ocr_engine": "AWS Textract + custom ACORD parser",
+    "confidence_avg": 0.94,
+    "documents_received": 6,
+    "extraction_status": "COMPLETE",
+    "underwriter_flags": [
+      "ACORD 125 p.3 — hot work permit program field blank",
+      "Supplemental p.2 — no backup steel supplier identified",
+      "Supplemental p.3 — slip/fall prevention checklist not on file"
+    ]
+  },
+
+  "document_1": {
+    "_source_file": "ACORD_125_Apex_Precision_2025.pdf",
+    "_form": "ACORD 125 (2016/03) — Commercial Insurance Application",
+    "_pages": 6,
+    "_received": "October 14, 2025",
+    "_raw_text": {
+      "page_1": "COMMERCIAL INSURANCE APPLICATION\nACORD 125 (2016/03)\n\nNamed Insured: Apex Precision Manufacturing, LLC\nDBA: Apex Precision\nMailing Address: 4820 Industrial Pkwy, Columbus, OH  43215\nWebsite: www.apexprecisionmfg.com\nFEIN: 31-1847620\nEntity Type: Limited Liability Company  |  State of Formation: Ohio\nYears in Business: 14  |  Years Under Current Management: 14\n\nPrincipal Contact: David Chen, Chief Executive Officer\nPhone: 614-882-1100  |  Email: d.chen@apexprecisionmfg.com\n\nBroker: Midwest Commercial Insurance Brokers LLC\nBroker NPN: 0C47823  |  Contact: James Whitfield  |  614-882-4400\nSubmission Date: October 14, 2025\nRequested Effective Date: January 1, 2026",
+
+      "page_2": "SECTION 2 — NATURE OF BUSINESS\n\nNAICS Code: 332710 — Machine Shops\nSIC: 3599\nAnnual Gross Revenue: $22,400,000\nAnnual Payroll: $9,800,000\nFull-Time Employees: 172  |  Part-Time / Seasonal: 15  |  Total: 187\n\nDescription of Operations:\nCNC machining, metal fabrication, welding and precision component manufacturing\nfor automotive and industrial OEMs. Primary operations include turning, milling,\ngrinding, and sub-assembly. Both locations are operational five days per week,\ntwo shifts daily. Finished goods shipped direct to OEM customers nationwide.\n\nTop Customers (% of Revenue):\n  Delphi Technologies — 24%\n  Parker Hannifin — 19%\n  BorgWarner — 15%\n  All other customers — 42%\n\nQuality Certifications: ISO 9001:2015  |  IATF 16949:2016\nPursuing ISO 45001 (Occupational Health & Safety) — expected Q2 2026.",
+
+      "page_3": "SECTION 3 — LOCATIONS\n\nLocation 1 — PRIMARY\n4820 Industrial Pkwy, Columbus, OH  43215  |  Franklin County\nOccupancy: Machine Shop / Metal Fabrication\nConstruction: Masonry Non-Combustible\nYear Built: 1998  |  Square Footage: 48,000 sq ft  |  Stories: 1\nSprinkler System: Yes — Wet Pipe, Full Coverage\nFire Protection Class: 4\nISO Classification: 3580 — Machine Shops Sprinklered\nAlarm: Central station monitored 24/7 + 16-camera CCTV\n\nHot Work Operations on Premises: YES\nType of Hot Work: MIG/TIG welding, torch cutting, angle grinding\nFrequency: Daily\nDocumented Hot Work Permit Program: _________________ [NOT COMPLETED]\nFire Watch Protocol in Place: _________________ [NOT COMPLETED]\n\nLocation 2 — SECONDARY / WAREHOUSE\n1100 Mfg Drive, Dayton, OH  45401  |  Montgomery County\nOccupancy: Finished Goods Warehouse\nConstruction: Joisted Masonry  |  Year Built: 2007  |  Sq Ft: 12,000\nSprinkler System: Yes  |  Fire Protection Class: 5",
+
+      "page_4": "SECTION 4 — FINANCIAL & CREDIT PROFILE\n\nD&B DUNS Number: 07-842-3601\nD&B Score: 78 / 100  |  D&B Rating: 2A2  |  PAYDEX Score: 80\nBankruptcy filing past 5 years: No\nUCC liens or judgments on file: No\n\nBank Reference:\n  Fifth Third Bank — Operating Account\n  Average Monthly Balance: $1,200,000\n  Years of Relationship: 9 years\n\nPrior Carrier: National Insurance Services\nPolicy expiration: January 1, 2026\nPrior cancellation or non-renewal by carrier: No",
+
+      "page_5_6": "SECTION 5 — PRIOR LOSSES (5-Year Summary)\n\nTotal claims: 2  |  Total incurred: $70,300  |  Open claims: 0\n\nClaim 1:\n  Claim No.: NIS-2022-0344\n  Date of Loss: March 15, 2022\n  Line: Commercial Property\n  Description: Equipment Breakdown — Haas VF-3 CNC Spindle Motor Failure.\n               Machine down 11 days. Repair cost including expedited parts.\n  Total Incurred: $47,200  |  Status: Closed — Paid\n\nClaim 2:\n  Claim No.: GL-2019-0047\n  Date of Loss: August 22, 2019\n  Line: General Liability — Premises\n  Description: Slip/Fall near loading dock. Claimant: R. Martinez.\n               Wet floor, no wet floor signage present at time of incident.\n               Settled without litigation.\n  Total Incurred: $23,100  |  Status: Closed — Paid\n\nRequested Premium: $112,000\nPrior Year Premium (NIS): $32,400"
+    }
+  },
+
+  "document_2": {
+    "_source_file": "ACORD_126_GL_Section_2025.pdf",
+    "_form": "ACORD 126 (2016/03) — General Liability Section",
+    "_pages": 3,
+    "_received": "October 14, 2025",
+    "_raw_text": {
+      "page_1": "GENERAL LIABILITY SECTION\nACORD 126 (2016/03)\n\nNamed Insured: Apex Precision Manufacturing, LLC\n\nCOVERAGE LIMITS REQUESTED:\n  Each Occurrence:                    $1,000,000\n  General Aggregate:                  $2,000,000\n  Products / Completed Operations:    $2,000,000\n  Personal & Advertising Injury:      $1,000,000\n  Medical Expense (any one person):   $10,000\n  Damage to Rented Premises:          $300,000\n\nCoverages Requested:\n  Products Liability:         Included\n  Completed Operations:       Included\n  Contractual Liability:      Included\n  Personal Injury:            Included",
+
+      "page_2": "CLASSIFICATION & RATING\n\nClassification Code: 91580 — Machine Shops\nBasis of Premium: Payroll\nAnnual Payroll: $9,800,000\nRate per $100 Payroll: $0.42\n\nSubcontractors Used: Yes\n  Scope: Electrical maintenance, HVAC, periodic overflow machining\n  Certificates of Insurance on file: Yes\n  Additional Insured endorsements obtained: Yes\n\nProducts shipped out of state: Yes — nationwide OEM distribution\nAny products recalled in last 5 years: No\nAny professional services provided: No",
+
+      "page_3": "GL CLAIMS HISTORY (5-Year)\n\nTotal GL claims: 1  |  Total incurred: $23,100  |  Open: 0\n\nClaim GL-2019-0047  |  08/22/2019\nPremises — Slip/Fall, loading dock area\nClaimant: R. Martinez  |  Incurred: $23,100  |  Status: Closed\nNote: Single isolated incident. No repeat premises claims on record."
+    }
+  },
+
+  "document_3": {
+    "_source_file": "ACORD_140_Property_2025.pdf",
+    "_form": "ACORD 140 (2016/03) — Property Section",
+    "_pages": 4,
+    "_received": "October 14, 2025",
+    "_raw_text": {
+      "page_1": "PROPERTY SECTION\nACORD 140 (2016/03)\n\nNamed Insured: Apex Precision Manufacturing, LLC\n\nCOMMERCIAL PROPERTY COVERAGE:\n  Policy Form:          ISO CP 00 10 (Broad Form)\n  Cause of Loss:        Special\n  Valuation:            Replacement Cost\n  Coinsurance Clause:   80%\n\n  Total Insured Value (TIV):              $8,500,000\n    Building (Loc 1 + Loc 2):             $5,200,000\n    Business Personal Property:           $2,850,000\n    Business Income / Extra Expense:        $450,000\n    Scheduled Inland Marine Equipment:      $450,000\n\nBusiness Interruption:\n  Annual Revenue:               $22,400,000\n  Waiting Period:               72 hours\n  Coinsurance:                  50%\n  Extended Period of Indemnity: 30 days",
+
+      "page_2": "LOCATION 1 PROPERTY DETAILS\n4820 Industrial Pkwy, Columbus, OH  43215\n\nConstruction:        Masonry Non-Combustible\nRoof Type:           Metal Deck — Built-Up\nRoof Year:           2014\nYear Built:          1998\nSquare Footage:      48,000\nSprinklers:          Yes — Wet Pipe, Full Coverage\nFire Alarm:          Central station monitored\nFire Protection Class: 4\nISO Class:           3580 — Machine Shops Sprinklered\n\nSprinkler System — Last Inspection:\n  Date: June 15, 2025\n  Inspector: Columbus Fire Protection Services\n  Result: PASS — no deficiencies noted",
+
+      "page_3_4": "SCHEDULED INLAND MARINE EQUIPMENT\n\nItem 1:\n  Description:     Mazak Integrex 400-II CNC Turning Center\n  Serial Number:   MZK-2019-0042\n  Year Purchased:  2019\n  Insured Value:   $185,000\n\nItem 2:\n  Description:     Haas VF-4 Vertical Machining Center\n  Serial Number:   HAAS-2021-0118\n  Year Purchased:  2021\n  Insured Value:   $145,000\n\nItem 3:\n  Description:     Coordinate Measuring Machine — Zeiss Contura G2\n  Serial Number:   ZEI-2018-0033\n  Year Purchased:  2018\n  Insured Value:   $120,000\n\nTotal Scheduled Equipment Value: $450,000\n\nCoinsurance Check (80% clause):\n  TIV Declared:              $8,500,000\n  Est. Replacement Cost:     $8,200,000\n  80% Minimum Required:      $6,560,000\n  Coinsurance Status:        PASS"
+    }
+  },
+
+  "document_4": {
+    "_source_file": "LossRun_5Yr_ApexPrecision.pdf",
+    "_form": "5-Year Certified Loss Run — Commercial Lines",
+    "_pages": 5,
+    "_received": "October 14, 2025",
+    "_certified_by": "National Insurance Services — Claims Department",
+    "_certification_date": "October 1, 2025",
+    "_raw_text": {
+      "page_1": "CERTIFIED LOSS RUN STATEMENT\nNational Insurance Services\nCommercial Lines — Claims Department\n\nNamed Insured:  Apex Precision Manufacturing, LLC\nFEIN:           31-1847620\nAddress:        4820 Industrial Pkwy, Columbus, OH 43215\nCertified as of: October 1, 2025\n\n5-YEAR POLICY SUMMARY:\n\n  Period                   Policy Number         Earned Prem    Paid Losses    Reserved    Loss Ratio\n  01/01/2021–01/01/2022   NIS-CP-2021-00847      $31,200        $0             $0          0.00\n  01/01/2022–01/01/2023   NIS-CP-2022-00923      $33,800        $47,200        $0          1.40\n  01/01/2023–01/01/2024   NIS-CP-2023-01004      $35,400        $0             $0          0.00\n  01/01/2024–01/01/2025   NIS-CP-2024-01089      $34,600        $0             $0          0.00\n  01/01/2025–01/01/2026   NIS-CP-2025-01177      $32,400        $23,100        $0          0.71\n  ─────────────────────────────────────────────────────────────────────────────────────────────\n  TOTAL (5-Year)                                 $167,400       $70,300        $0          0.42\n\nTotal Claims: 2  |  Open Claims: 0  |  Aggregate Loss Ratio: 0.42",
+
+      "page_2_5": "CLAIM DETAIL\n\nCLAIM 1 OF 2\n  Claim Number:     NIS-2022-0344\n  Policy Year:      2022\n  Line of Business: Commercial Property\n  Date of Loss:     March 15, 2022\n  Date Reported:    March 16, 2022\n  Description:      Equipment Breakdown. Haas VF-3 CNC machining center —\n                    spindle motor failure during production run. Machine out of\n                    service 11 days. Cost includes parts, labor, expedited shipping,\n                    and partial business interruption (3 days beyond waiting period).\n  Total Incurred:   $47,200\n  Total Paid:       $47,200\n  Reserve:          $0\n  Status:           Closed — Final Payment 06/14/2022\n  Subrogation:      None\n\nCLAIM 2 OF 2\n  Claim Number:     GL-2019-0047\n  Policy Year:      2019\n  Line of Business: General Liability — Premises\n  Date of Loss:     August 22, 2019\n  Date Reported:    August 23, 2019\n  Description:      Claimant R. Martinez slipped on wet concrete floor near\n                    loading dock (Bay 3). No wet floor signage was posted at\n                    time of incident. Claimant sustained soft tissue injury to\n                    lower back. Settled without litigation per release dated\n                    January 14, 2020.\n  Total Incurred:   $23,100\n  Total Paid:       $23,100\n  Reserve:          $0\n  Status:           Closed — Final Settlement 01/14/2020\n  Subrogation:      None\n\nI certify this loss run is accurate and complete as of October 1, 2025.\n_______________________________\nSenior Claims Analyst, National Insurance Services"
+    }
+  },
+
+  "document_5": {
+    "_source_file": "FinancialStatements_2022-2024.pdf",
+    "_form": "3-Year Financial Statements (P&L + Balance Sheet) FY2022–FY2024",
+    "_pages": 12,
+    "_received": "October 14, 2025",
+    "_prepared_by": "Chen & Associates CPA  |  Columbus, OH  |  License: OH-CPA-0042817",
+    "_audit_status": "Reviewed — Not Audited",
+    "_raw_text": {
+      "page_1": "CHEN & ASSOCIATES CPA\n4100 E. Broad St., Suite 310, Columbus, OH 43213\nOH CPA License: 0042817  |  Phone: 614-771-2200\n\nAccountant's Review Report\n\nTo the Management of Apex Precision Manufacturing, LLC:\n\nWe have reviewed the accompanying financial statements of Apex Precision\nManufacturing, LLC for the fiscal years ended December 31, 2022, 2023, and 2024.\nA review includes primarily applying analytical procedures and making inquiries.\nA review is substantially less in scope than an audit. We have not audited the\naccompanying financial statements and, accordingly, do not express an audit opinion.\n\nChen & Associates CPA  |  October 8, 2025",
+
+      "page_2_6": "CONSOLIDATED INCOME STATEMENTS\nApex Precision Manufacturing, LLC\nFiscal Years Ended December 31\n\n                              FY2022          FY2023          FY2024\n  Net Revenue              $19,800,000     $21,200,000     $22,400,000\n  Cost of Goods Sold       $13,860,000     $14,840,000     $15,680,000\n  Gross Profit              $5,940,000      $6,360,000      $6,720,000\n  Gross Margin                   30.0%           30.0%           30.0%\n\n  Operating Expenses        $3,960,000      $4,240,000      $4,480,000\n    Salaries & Benefits       $2,200,000      $2,350,000      $2,480,000\n    Facilities & Utilities      $680,000        $720,000        $760,000\n    Depreciation & Amort.       $520,000        $580,000        $610,000\n    SG&A (other)                $560,000        $590,000        $630,000\n\n  EBITDA                    $1,980,000      $2,120,000      $2,240,000\n  EBITDA Margin                  10.0%           10.0%           10.0%\n  Net Income                $1,386,000      $1,484,000      $1,568,000\n  Net Margin                     7.0%            7.0%            7.0%\n\n  Revenue CAGR (3-year): 6.5%  |  No year-over-year revenue decline on record.",
+
+      "page_7_12": "CONSOLIDATED BALANCE SHEET — December 31, 2024\nApex Precision Manufacturing, LLC\n\nASSETS\n  Current Assets\n    Cash & Equivalents:            $1,420,000\n    Accounts Receivable (net):     $3,180,000\n    Inventory:                     $2,640,000\n    Prepaid Expenses:                $160,000\n    Total Current Assets:          $7,400,000\n\n  Non-Current Assets\n    Property, Plant & Equipment:   $6,200,000\n    Accumulated Depreciation:     ($2,800,000)\n    Net PP&E:                      $3,400,000\n    Other Assets:                    $900,000\n    Total Non-Current Assets:      $4,300,000 (est. after depr.)\n\n  TOTAL ASSETS:                   $14,200,000\n\nLIABILITIES & EQUITY\n  Total Current Liabilities:       $3,520,000\n  Long-Term Debt:                  $2,880,000\n  Total Liabilities:               $6,400,000\n  Shareholders Equity:             $7,800,000\n  TOTAL LIABILITIES & EQUITY:    $14,200,000\n\nKey Ratios:\n  Current Ratio:      2.1\n  Debt-to-Equity:     0.82\n  Working Capital:    $3,400,000 (favorable)\n\nBank Reference: Fifth Third Bank — Operating Account\n  Avg Monthly Balance: $1,200,000  |  Relationship: 9 years"
+    }
+  },
+
+  "document_6": {
+    "_source_file": "SupplementalQuestionnaire_Mfg.pdf",
+    "_form": "Meridian Commercial Insurance — Manufacturing Risk Questionnaire  Rev. 4",
+    "_pages": 4,
+    "_received": "October 14, 2025",
+    "_completed_by": "David Chen, CEO",
+    "_signed": "D. Chen  —  October 10, 2025",
+    "_raw_text": {
+      "page_1": "MANUFACTURING RISK QUESTIONNAIRE\nMeridian Commercial Insurance Carriers  |  Rev. 4\n\nApplicant: Apex Precision Manufacturing, LLC\nCompleted by: David Chen, CEO  |  Date: October 10, 2025\n\nOPERATIONS OVERVIEW\n\nDescribe your primary manufacturing operations:\n  CNC machining, precision metal fabrication, welding and assembly for automotive\n  and industrial OEM customers. We produce precision machined components,\n  fabricated assemblies, and custom tooling to customer print specifications.\n\nTop three customers and approximate % of revenue:\n  Delphi Technologies — 24% | Parker Hannifin — 19% | BorgWarner — 15%\n  (top 3 combined: 58% of annual revenue)\n\nQuality certifications held:\n  ISO 9001:2015  |  IATF 16949:2016\n  ISO 45001 in progress — expected Q2 2026\n\nNumber of operating shifts per day:  2\nAnnual gross revenue:  $22,400,000",
+
+      "page_2": "HOT WORK & FIRE SAFETY\n\nIs hot work (welding, torch cutting, grinding) performed on premises?  YES\nFrequency:  Daily\nTypes of hot work:  MIG welding, TIG welding, torch cutting, angle grinding\n\nIs there a documented hot work permit program in place?\n  _________________________________________________ [LEFT BLANK]\n\nIs a fire watch protocol in place for hot work operations?\n  _________________________________________________ [LEFT BLANK]\n\nAre flammable or combustible liquids stored on premises?\n  Yes — less than 60 gallons. Stored in approved FM-rated safety cabinets.\n\nSprinkler system last inspection:\n  Date: June 15, 2025\n  Inspecting company: Columbus Fire Protection Services\n  Result: PASS — no deficiencies noted\n\nSecurity system:\n  24/7 central station monitored alarm system\n  16-camera CCTV coverage — full perimeter and production floor\n  Armed response SLA: 8 minutes\n\nEmployee safety training programs:\n  Annual OSHA 10-hr General Industry for all production staff\n  Forklift operator certification — 12 certified operators\n  Hot work specific training program: NONE DOCUMENTED",
+
+      "page_3": "SUPPLY CHAIN & BUSINESS CONTINUITY\n\nPrimary raw material supplier (steel):\n  Midwest Steel Inc., Toledo, OH\n  Approximate % of total raw steel purchases:  67%\n\nBackup / secondary steel supplier identified?\n  _________________________________________________ [LEFT BLANK]\n\nDo you have a formal business continuity or disaster recovery plan?  No\n\nSubcontractors used?\n  Yes — electrical maintenance, HVAC servicing, occasional overflow machining\n  Certificates of insurance obtained from all subcontractors:  Yes\n  Additional insured endorsements in place:  Yes\n\nAny prior policy cancellations or non-renewals by a carrier?  No",
+
+      "page_4": "PREMISES SAFETY & PRIOR LOSSES\n\nSlip/fall or premises liability prevention program in place?\n  _________________________________________________ [LEFT BLANK]\n\nMost recent formal premises safety inspection:\n  Date:       NOT ON FILE\n  Inspector:  _______________________ [LEFT BLANK]\n  Result:     _______________________\n\nPrior claims in last 5 years:  2 claims — see certified 5-year loss run attached.\n\nAdditional comments or information:\n  Apex Precision is actively pursuing ISO 45001 (Occupational Health & Safety\n  Management) certification. We have engaged an external consultant and expect\n  to achieve certification by Q2 2026. We believe this will positively impact\n  our safety program documentation across all areas noted above.\n\nRequested policy effective date:  January 1, 2026\nRequested annual premium:         $112,000\n\nI certify the above information is accurate and complete to the best of my knowledge.\n\nSignature: D. Chen  |  Title: CEO  |  Date: October 10, 2025"
+    }
+  }
+}
